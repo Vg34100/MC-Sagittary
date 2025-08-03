@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "amethyst:item/component_arrow",
+    "layer1": "amethyst:item/flint_tip",
+    "layer2": "amethyst:item/stick_shaft"
+  }
+}
