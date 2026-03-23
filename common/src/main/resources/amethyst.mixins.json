@@ -6,6 +6,7 @@
   "client": [
   ],
   "mixins": [
+    "FletchingTableBlockMixin"
   ],
   "injectors": {
     "defaultRequire": 1

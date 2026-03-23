@@ -1,6 +1,8 @@
 {
   "replace": false,
   "values": [
-    "amethyst:amethyst_arrow"
+    "amethyst:amethyst_arrow",
+    "amethyst:component_arrow"
+
   ]
 }
