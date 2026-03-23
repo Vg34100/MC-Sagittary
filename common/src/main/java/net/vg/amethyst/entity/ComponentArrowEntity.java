@@ -118,6 +118,12 @@ public class ComponentArrowEntity extends AbstractArrow {
             this.tipComponent = ArrowComponent.getByMaterialAndType(tipName, ArrowComponent.ComponentType.TIP);
             this.shaftComponent = ArrowComponent.getByMaterialAndType(shaftName, ArrowComponent.ComponentType.SHAFT);
             this.fletchingComponent = ArrowComponent.getByMaterialAndType(fletchingName, ArrowComponent.ComponentType.FLETCHING);
+
+            // Keep the client-side effect instances aligned with synced components.
+            // Gravity, particles, and other per-tick behavior read from these effects.
+            this.tipEffect = this.tipComponent.createEffect();
+            this.shaftEffect = this.shaftComponent.createEffect();
+            this.fletchingEffect = this.fletchingComponent.createEffect();
         }
     }
     
