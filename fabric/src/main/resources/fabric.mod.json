@@ -1,8 +1,8 @@
 {
   "schemaVersion": 1,
-  "id": "amethyst",
+  "id": "sagittary",
   "version": "${version}",
-  "name": "Amethyst",
+  "name": "Sagittary",
   "description": "",
   "authors": [
     "VgLevelUp"
@@ -11,27 +11,26 @@
     "homepage": "https://github.com/Vg34100"
   },
   "license": "MIT",
-  "icon": "assets/amethyst/icon.png",
   "environment": "*",
   "entrypoints": {
     "main": [
-      "net.vg.amethyst.fabric.AmethystFabric"
+      "net.vg.sagittary.fabric.SagittaryFabric"
     ],
     "client": [
-      "net.vg.amethyst.fabric.client.AmethystFabricClient"
+      "net.vg.sagittary.fabric.client.SagittaryFabricClient"
     ],
     "fabric-datagen": [
-      "net.vg.amethyst.fabric.data.ModDataGenerator"
+      "net.vg.sagittary.fabric.data.ModDataGenerator"
     ]
   },
   "mixins": [
-    "amethyst.mixins.json"
+    "sagittary.mixins.json"
   ],
   "depends": {
-    "fabricloader": ">=0.16.14",
-    "minecraft": "~1.21.5",
+    "fabricloader": ">=0.18.4",
+    "minecraft": "~1.21.1",
     "java": ">=21",
-    "architectury": ">=16.1.4",
+    "architectury": ">=13.0.8",
     "fabric-api": "*"
   },
   "suggests": {

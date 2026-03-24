@@ -34,4 +34,3 @@ This file holds feature ideas that are intentionally not part of the current rel
 
 - Revisit copper lightning implementation to reduce hitching
 - Keep mechanic docs in `docs/wiki/` as the code evolves
-- Treat the future 1.21.1 downgrade as a separate migration effort from feature work

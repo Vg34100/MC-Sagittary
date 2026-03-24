@@ -1,4 +1,4 @@
-# Amethyst Wiki
+# Sagittary Wiki
 
 This directory is the source of truth for gameplay and feature documentation.
 

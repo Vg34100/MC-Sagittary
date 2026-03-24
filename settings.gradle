@@ -7,7 +7,7 @@ pluginManagement {
     }
 }
 
-rootProject.name = 'amethyst'
+rootProject.name = 'sagittary'
 
 include 'common'
 include 'fabric'
