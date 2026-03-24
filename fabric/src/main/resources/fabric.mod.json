@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "id": "amethyst",
+  "id": "sagittary",
   "version": "${version}",
   "name": "Sagittary",
   "description": "",
@@ -11,21 +11,20 @@
     "homepage": "https://github.com/Vg34100"
   },
   "license": "MIT",
-  "icon": "assets/amethyst/icon.png",
   "environment": "*",
   "entrypoints": {
     "main": [
-      "net.vg.amethyst.fabric.AmethystFabric"
+      "net.vg.sagittary.fabric.SagittaryFabric"
     ],
     "client": [
-      "net.vg.amethyst.fabric.client.AmethystFabricClient"
+      "net.vg.sagittary.fabric.client.SagittaryFabricClient"
     ],
     "fabric-datagen": [
-      "net.vg.amethyst.fabric.data.ModDataGenerator"
+      "net.vg.sagittary.fabric.data.ModDataGenerator"
     ]
   },
   "mixins": [
-    "amethyst.mixins.json"
+    "sagittary.mixins.json"
   ],
   "depends": {
     "fabricloader": ">=0.18.4",

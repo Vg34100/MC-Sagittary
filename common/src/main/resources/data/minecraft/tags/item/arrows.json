@@ -1,8 +1,8 @@
 {
   "replace": false,
   "values": [
-    "amethyst:amethyst_arrow",
-    "amethyst:component_arrow"
+    "sagittary:amethyst_arrow",
+    "sagittary:component_arrow"
 
   ]
 }

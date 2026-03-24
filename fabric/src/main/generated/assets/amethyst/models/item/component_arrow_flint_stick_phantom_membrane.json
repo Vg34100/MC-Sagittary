@@ -1,8 +1,0 @@
-{
-  "parent": "minecraft:item/generated",
-  "textures": {
-    "layer0": "amethyst:item/flint_tip",
-    "layer1": "amethyst:item/stick_shaft",
-    "layer2": "amethyst:item/phantom_membrane_fletching"
-  }
-}

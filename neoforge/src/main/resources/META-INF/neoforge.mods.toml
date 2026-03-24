@@ -4,7 +4,7 @@ loaderVersion = "[2,)"
 license = "MIT"
 
 [[mods]]
-modId = "amethyst"
+modId = "sagittary"
 version = "${version}"
 displayName = "Sagittary"
 authors = "VgLevelUp"
@@ -13,21 +13,21 @@ description = '''
 '''
 #logoFile = ""
 
-[[dependencies.amethyst]]
+[[dependencies.sagittary]]
 modId = "neoforge"
 type = "required"
 versionRange = "[21,)"
 ordering = "NONE"
 side = "BOTH"
 
-[[dependencies.amethyst]]
+[[dependencies.sagittary]]
 modId = "minecraft"
 type = "required"
 versionRange = "[1.21.1,1.21.2)"
 ordering = "NONE"
 side = "BOTH"
 
-[[dependencies.amethyst]]
+[[dependencies.sagittary]]
 modId = "architectury"
 type = "required"
 versionRange = "[13.0.8,)"
@@ -35,4 +35,4 @@ ordering = "AFTER"
 side = "BOTH"
 
 [[mixins]]
-config = "amethyst.mixins.json"
+config = "sagittary.mixins.json"

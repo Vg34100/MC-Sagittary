@@ -1,0 +1,118 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "sagittary:item/component_arrow",
+    "layer1": "sagittary:item/flint_tip",
+    "layer2": "sagittary:item/stick_shaft"
+  },
+  "overrides": [
+    {
+      "predicate": {"custom_model_data": 1},
+      "model": "sagittary:item/component_arrow_flint_stick_feather"
+    },
+    {
+      "predicate": {"custom_model_data": 2},
+      "model": "sagittary:item/component_arrow_flint_stick_paper"
+    },
+    {
+      "predicate": {"custom_model_data": 3},
+      "model": "sagittary:item/component_arrow_flint_stick_phantom_membrane"
+    },
+    {
+      "predicate": {"custom_model_data": 4},
+      "model": "sagittary:item/component_arrow_flint_bamboo_feather"
+    },
+    {
+      "predicate": {"custom_model_data": 5},
+      "model": "sagittary:item/component_arrow_flint_bamboo_paper"
+    },
+    {
+      "predicate": {"custom_model_data": 6},
+      "model": "sagittary:item/component_arrow_flint_bamboo_phantom_membrane"
+    },
+    {
+      "predicate": {"custom_model_data": 7},
+      "model": "sagittary:item/component_arrow_flint_blaze_rod_feather"
+    },
+    {
+      "predicate": {"custom_model_data": 8},
+      "model": "sagittary:item/component_arrow_flint_blaze_rod_paper"
+    },
+    {
+      "predicate": {"custom_model_data": 9},
+      "model": "sagittary:item/component_arrow_flint_blaze_rod_phantom_membrane"
+    },
+    {
+      "predicate": {"custom_model_data": 10},
+      "model": "sagittary:item/component_arrow_amethyst_stick_feather"
+    },
+    {
+      "predicate": {"custom_model_data": 11},
+      "model": "sagittary:item/component_arrow_amethyst_stick_paper"
+    },
+    {
+      "predicate": {"custom_model_data": 12},
+      "model": "sagittary:item/component_arrow_amethyst_stick_phantom_membrane"
+    },
+    {
+      "predicate": {"custom_model_data": 13},
+      "model": "sagittary:item/component_arrow_amethyst_bamboo_feather"
+    },
+    {
+      "predicate": {"custom_model_data": 14},
+      "model": "sagittary:item/component_arrow_amethyst_bamboo_paper"
+    },
+    {
+      "predicate": {"custom_model_data": 15},
+      "model": "sagittary:item/component_arrow_amethyst_bamboo_phantom_membrane"
+    },
+    {
+      "predicate": {"custom_model_data": 16},
+      "model": "sagittary:item/component_arrow_amethyst_blaze_rod_feather"
+    },
+    {
+      "predicate": {"custom_model_data": 17},
+      "model": "sagittary:item/component_arrow_amethyst_blaze_rod_paper"
+    },
+    {
+      "predicate": {"custom_model_data": 18},
+      "model": "sagittary:item/component_arrow_amethyst_blaze_rod_phantom_membrane"
+    },
+    {
+      "predicate": {"custom_model_data": 19},
+      "model": "sagittary:item/component_arrow_copper_stick_feather"
+    },
+    {
+      "predicate": {"custom_model_data": 20},
+      "model": "sagittary:item/component_arrow_copper_stick_paper"
+    },
+    {
+      "predicate": {"custom_model_data": 21},
+      "model": "sagittary:item/component_arrow_copper_stick_phantom_membrane"
+    },
+    {
+      "predicate": {"custom_model_data": 22},
+      "model": "sagittary:item/component_arrow_copper_bamboo_feather"
+    },
+    {
+      "predicate": {"custom_model_data": 23},
+      "model": "sagittary:item/component_arrow_copper_bamboo_paper"
+    },
+    {
+      "predicate": {"custom_model_data": 24},
+      "model": "sagittary:item/component_arrow_copper_bamboo_phantom_membrane"
+    },
+    {
+      "predicate": {"custom_model_data": 25},
+      "model": "sagittary:item/component_arrow_copper_blaze_rod_feather"
+    },
+    {
+      "predicate": {"custom_model_data": 26},
+      "model": "sagittary:item/component_arrow_copper_blaze_rod_paper"
+    },
+    {
+      "predicate": {"custom_model_data": 27},
+      "model": "sagittary:item/component_arrow_copper_blaze_rod_phantom_membrane"
+    }
+  ]
+}
