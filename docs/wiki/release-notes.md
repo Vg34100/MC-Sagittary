@@ -2,7 +2,7 @@
 
 Current target baseline:
 
-- Minecraft 1.21.5
+- Minecraft 1.21.1
 - Architectury
 - Fabric and NeoForge
 - Java 21
@@ -21,7 +21,6 @@ Current target baseline:
 
 - Copper lightning can cause a noticeable hitch when the lightning entity is spawned
 - The repo does not yet have polished user-facing release docs outside this wiki directory
-- A later downgrade from 1.21.5 to 1.21.1 is still intended, but has not been started
 
 ## Release Readiness
 

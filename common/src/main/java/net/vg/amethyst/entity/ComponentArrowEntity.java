@@ -96,6 +96,18 @@ public class ComponentArrowEntity extends AbstractArrow {
         this.shaftEffect.applyInitialModifiers(this);
         this.fletchingEffect.applyInitialModifiers(this);
     }
+
+    private void ensureComponentStateLoaded() {
+        ItemStack stack = this.getPickupItemStackOrigin();
+        if (stack != null && !stack.isEmpty() && stack.getItem() instanceof ComponentArrowItem) {
+            this.tipComponent = ComponentArrowItem.getTipFromStack(stack);
+            this.shaftComponent = ComponentArrowItem.getShaftFromStack(stack);
+            this.fletchingComponent = ComponentArrowItem.getFletchingFromStack(stack);
+            this.tipEffect = this.tipComponent.createEffect();
+            this.shaftEffect = this.shaftComponent.createEffect();
+            this.fletchingEffect = this.fletchingComponent.createEffect();
+        }
+    }
     
     @Override
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
@@ -142,6 +154,7 @@ public class ComponentArrowEntity extends AbstractArrow {
     
     @Override
     public void shoot(double x, double y, double z, float velocity, float inaccuracy) {
+        ensureComponentStateLoaded();
         super.shoot(x, y, z, velocity, inaccuracy);
         
         // Apply speed modifiers from all effects
@@ -153,6 +166,7 @@ public class ComponentArrowEntity extends AbstractArrow {
 
     @Override
     public void tick() {
+        ensureComponentStateLoaded();
         super.tick();
         
         // Apply tick effects from all components
@@ -163,6 +177,7 @@ public class ComponentArrowEntity extends AbstractArrow {
     
     @Override
     protected void onHitEntity(EntityHitResult entityHitResult) {
+        ensureComponentStateLoaded();
         super.onHitEntity(entityHitResult);
         
         // Apply entity hit effects from all components
@@ -173,6 +188,7 @@ public class ComponentArrowEntity extends AbstractArrow {
     
     @Override
     protected void onHitBlock(BlockHitResult blockHitResult) {
+        ensureComponentStateLoaded();
         super.onHitBlock(blockHitResult);
         
         // Apply block hit effects from all components
@@ -253,11 +269,12 @@ public class ComponentArrowEntity extends AbstractArrow {
     
     // Public accessor for protected isInGround() method (for effects to use)
     public boolean isArrowInGround() {
-        return this.isInGround();
+        return this.inGround;
     }
     
     @Override
     protected double getDefaultGravity() {
+        ensureComponentStateLoaded();
         // Apply gravity modifiers from all effects
         double baseGravity = super.getDefaultGravity(); // 0.05
         double totalGravityModifier = tipEffect.getGravityModifier(this) * 

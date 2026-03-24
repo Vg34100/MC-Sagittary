@@ -30,7 +30,7 @@ public class AmethystArrowEntity extends AbstractArrow {
     public void tick() {
         super.tick();
         
-        if (this.level().isClientSide && !this.isInGround()) {
+        if (this.level().isClientSide && !this.inGround) {
             double d0 = this.getX() + (this.random.nextDouble() - 0.5) * 0.5;
             double d1 = this.getY() + (this.random.nextDouble() - 0.5) * 0.5;
             double d2 = this.getZ() + (this.random.nextDouble() - 0.5) * 0.5;
@@ -47,7 +47,7 @@ public class AmethystArrowEntity extends AbstractArrow {
         super.onHitEntity(result);
         
         if (result.getEntity() instanceof LivingEntity livingEntity) {
-            livingEntity.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 20, 255, false, false, false));
+            livingEntity.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 20, 255, false, false, false));
             
             if (this.level().isClientSide) {
                 for (int i = 0; i < 10; i++) {

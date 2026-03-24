@@ -4,10 +4,9 @@ import dev.architectury.registry.registries.DeferredRegister;
 import dev.architectury.registry.registries.Registrar;
 import dev.architectury.registry.registries.RegistrySupplier;
 import net.minecraft.core.component.DataComponentType;
-import net.minecraft.core.registries.Registries;
 import net.minecraft.core.dispenser.ProjectileDispenseBehavior;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.data.recipes.RecipeCategory;
-import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.MobCategory;
 import net.minecraft.world.inventory.MenuType;
@@ -46,13 +45,11 @@ public class ObjectRegistry {
     public static final Registrar<DataComponentType<?>> DATA_COMPONENT_TYPE_REGISTRAR = DATA_COMPONENT_TYPES.getRegistrar();
 
     public static final RegistrySupplier<Item> AMETHYST_ARROW_ITEM = Util.registerItem(ITEMS, ITEM_REGISTRAR, Identifier.of("amethyst_arrow"), () -> {
-        ResourceKey<Item> itemKey = Util.createItemKey("amethyst_arrow");
-        return new AmethystArrowItem(new Item.Properties().setId(itemKey));
+        return new AmethystArrowItem(new Item.Properties());
     });
     
     public static final RegistrySupplier<Item> COMPONENT_ARROW_ITEM = Util.registerItem(ITEMS, ITEM_REGISTRAR, Identifier.of("component_arrow"), () -> {
-        ResourceKey<Item> itemKey = Util.createItemKey("component_arrow");
-        return new ComponentArrowItem(new Item.Properties().setId(itemKey));
+        return new ComponentArrowItem(new Item.Properties());
     });
     
     public static final RegistrySupplier<EntityType<AmethystArrowEntity>> AMETHYST_ARROW_ENTITY = Util.registerEntity(ENTITIES, ENTITY_REGISTRAR, Identifier.of("amethyst_arrow"), () -> 
@@ -60,14 +57,14 @@ public class ObjectRegistry {
             .sized(0.5F, 0.5F)
             .clientTrackingRange(4)
             .updateInterval(20)
-            .build(ResourceKey.create(Registries.ENTITY_TYPE, Identifier.of("amethyst_arrow"))));
+            .build(Identifier.of("amethyst_arrow").toString()));
             
     public static final RegistrySupplier<EntityType<ComponentArrowEntity>> COMPONENT_ARROW_ENTITY = Util.registerEntity(ENTITIES, ENTITY_REGISTRAR, Identifier.of("component_arrow"), () -> 
         EntityType.Builder.<ComponentArrowEntity>of(ComponentArrowEntity::new, MobCategory.MISC)
             .sized(0.5F, 0.5F)
             .clientTrackingRange(4)
             .updateInterval(20)
-            .build(ResourceKey.create(Registries.ENTITY_TYPE, Identifier.of("component_arrow"))));
+            .build(Identifier.of("component_arrow").toString()));
     
     public static final RegistrySupplier<MenuType<FletchingTableMenu>> FLETCHING_TABLE_MENU_TYPE = MENU_TYPES.register(Identifier.of("fletching_table"), () -> 
         new MenuType<>(FletchingTableMenu::new, net.minecraft.world.flag.FeatureFlags.DEFAULT_FLAGS));

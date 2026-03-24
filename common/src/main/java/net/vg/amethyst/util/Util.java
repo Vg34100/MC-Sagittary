@@ -4,10 +4,10 @@ import dev.architectury.platform.Platform;
 import dev.architectury.registry.registries.DeferredRegister;
 import dev.architectury.registry.registries.Registrar;
 import dev.architectury.registry.registries.RegistrySupplier;
-import net.minecraft.client.data.models.model.ModelTemplate;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.data.models.model.ModelTemplate;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
@@ -84,8 +84,7 @@ public class Util {
 
         // Register the block item with proper ID
         registerItem(registerI, registrarI, name, () -> {
-            // Create BlockItem with an Item.Properties that has the ID set
-            Item.Properties properties = new Item.Properties().setId(itemKey);
+            Item.Properties properties = new Item.Properties();
             return new BlockItem(toReturn.get(), properties);
         });
 

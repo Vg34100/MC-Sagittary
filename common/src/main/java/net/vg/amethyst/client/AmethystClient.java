@@ -4,7 +4,6 @@ import dev.architectury.registry.client.level.entity.EntityRendererRegistry;
 import dev.architectury.registry.menu.MenuRegistry;
 import net.minecraft.client.renderer.entity.ArrowRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
-import net.minecraft.client.renderer.entity.state.ArrowRenderState;
 import net.minecraft.resources.ResourceLocation;
 import net.vg.amethyst.entity.AmethystArrowEntity;
 import net.vg.amethyst.entity.ComponentArrowEntity;
@@ -20,8 +19,7 @@ public class AmethystClient {
     }
     
     public static void initItemRenderers() {
-        // Component arrow textures are handled via JSON model system with CompositeModel
-        // No additional registration needed - models are loaded from JSON
+        // Item appearance is driven by custom_model_data on 1.21.1.
     }
     
     public static void initEntityRenderers() {
@@ -33,7 +31,7 @@ public class AmethystClient {
         MenuRegistry.registerScreenFactory(ObjectRegistry.FLETCHING_TABLE_MENU_TYPE.get(), FletchingTableScreen::new);
     }
     
-    public static class AmethystArrowRenderer extends ArrowRenderer<AmethystArrowEntity, ArrowRenderState> {
+    public static class AmethystArrowRenderer extends ArrowRenderer<AmethystArrowEntity> {
         public static final ResourceLocation ARROW_LOCATION = ResourceLocation.withDefaultNamespace("textures/entity/projectiles/arrow.png");
         
         public AmethystArrowRenderer(EntityRendererProvider.Context context) {
@@ -41,17 +39,12 @@ public class AmethystClient {
         }
 
         @Override
-        public ResourceLocation getTextureLocation(ArrowRenderState renderState) {
+        public ResourceLocation getTextureLocation(AmethystArrowEntity entity) {
             return ARROW_LOCATION;
-        }
-
-        @Override
-        public ArrowRenderState createRenderState() {
-            return new ArrowRenderState();
         }
     }
     
-    public static class ComponentArrowRenderer extends ArrowRenderer<ComponentArrowEntity, ArrowRenderState> {
+    public static class ComponentArrowRenderer extends ArrowRenderer<ComponentArrowEntity> {
         public static final ResourceLocation ARROW_LOCATION = ResourceLocation.withDefaultNamespace("textures/entity/projectiles/arrow.png");
         
         public ComponentArrowRenderer(EntityRendererProvider.Context context) {
@@ -59,13 +52,8 @@ public class AmethystClient {
         }
 
         @Override
-        public ResourceLocation getTextureLocation(ArrowRenderState renderState) {
+        public ResourceLocation getTextureLocation(ComponentArrowEntity entity) {
             return ARROW_LOCATION;
-        }
-
-        @Override
-        public ArrowRenderState createRenderState() {
-            return new ArrowRenderState();
         }
     }
 }

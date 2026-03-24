@@ -17,7 +17,7 @@ public class FletchingTableMenuProvider implements MenuProvider {
     
     @Override
     public Component getDisplayName() {
-        return Component.translatable("container.fletching");
+        return Component.translatable("container.amethyst.fletching_table");
     }
     
     @Nullable

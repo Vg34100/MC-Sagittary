@@ -6,7 +6,7 @@ license = "MIT"
 [[mods]]
 modId = "amethyst"
 version = "${version}"
-displayName = "Amethyst"
+displayName = "Sagittary"
 authors = "VgLevelUp"
 description = '''
 
@@ -23,14 +23,14 @@ side = "BOTH"
 [[dependencies.amethyst]]
 modId = "minecraft"
 type = "required"
-versionRange = "[1.21.5,)"
+versionRange = "[1.21.1,1.21.2)"
 ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.amethyst]]
 modId = "architectury"
 type = "required"
-versionRange = "[16.1.4,)"
+versionRange = "[13.0.8,)"
 ordering = "AFTER"
 side = "BOTH"
 

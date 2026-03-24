@@ -16,7 +16,7 @@ public class AmethystTipEffect implements ComponentEffect {
     public void onEntityHit(EntityHitResult entityHitResult, ComponentArrowEntity arrow) {
         if (entityHitResult.getEntity() instanceof LivingEntity target) {
             // Apply slowness effect like original amethyst arrow
-            target.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 20, 255));
+            target.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 20, 255));
             
             // Add particle burst on hit
             if (!arrow.level().isClientSide) {

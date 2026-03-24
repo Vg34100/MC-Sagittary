@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "id": "amethyst",
   "version": "${version}",
-  "name": "Amethyst",
+  "name": "Sagittary",
   "description": "",
   "authors": [
     "VgLevelUp"
@@ -28,10 +28,10 @@
     "amethyst.mixins.json"
   ],
   "depends": {
-    "fabricloader": ">=0.16.14",
-    "minecraft": "~1.21.5",
+    "fabricloader": ">=0.18.4",
+    "minecraft": "~1.21.1",
     "java": ">=21",
-    "architectury": ">=16.1.4",
+    "architectury": ">=13.0.8",
     "fabric-api": "*"
   },
   "suggests": {

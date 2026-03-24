@@ -33,7 +33,7 @@ public final class AmethystNeoForge {
     }
 
     private void clientSetup(FMLClientSetupEvent event) {
-        // Other client setup can go here if needed
+        event.enqueueWork(AmethystClient::initItemRenderers);
     }
     
     private void registerMenuScreens(RegisterMenuScreensEvent event) {

@@ -3,6 +3,7 @@ package net.vg.amethyst.component.effects;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.*;
+import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.phys.EntityHitResult;
 import net.minecraft.world.phys.Vec3;
 import net.vg.amethyst.entity.ComponentArrowEntity;
@@ -25,7 +26,7 @@ public class CopperTipEffect implements ComponentEffect {
                     serverLevel,
                     null,
                     target.blockPosition(),
-                    EntitySpawnReason.EVENT,
+                    MobSpawnType.EVENT,
                     false,
                     false
             );

@@ -1,0 +1,21 @@
+{
+  "item.amethyst.amethyst_arrow": "Amethyst Arrow",
+  "item.amethyst.component_arrow": "Component Arrow",
+  "item.amethyst.component_arrow.flint": "Flint Arrow",
+  "item.amethyst.component_arrow.amethyst": "Amethyst Arrow",
+  "item.amethyst.component_arrow.copper": "Copper Arrow",
+  "tooltip.amethyst.component_arrow": "Components",
+  "tooltip.amethyst.tip": "Tip",
+  "tooltip.amethyst.shaft": "Shaft",
+  "tooltip.amethyst.fletching": "Fletching",
+  "container.amethyst.fletching_table": "Fletching Table",
+  "component.amethyst.flint_tip": "Flint Tip",
+  "component.amethyst.amethyst_tip": "Amethyst Tip",
+  "component.amethyst.copper_tip": "Copper Tip",
+  "component.amethyst.stick_shaft": "Stick Shaft",
+  "component.amethyst.bamboo_shaft": "Bamboo Shaft",
+  "component.amethyst.blaze_rod_shaft": "Blaze Rod Shaft",
+  "component.amethyst.feather_fletching": "Feather Fletching",
+  "component.amethyst.paper_fletching": "Paper Fletching",
+  "component.amethyst.phantom_membrane_fletching": "Phantom Membrane Fletching"
+}
