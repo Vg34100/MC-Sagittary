@@ -11,6 +11,7 @@
     "homepage": "https://github.com/Vg34100"
   },
   "license": "MIT",
+  "icon": "assets/sagittary/icon.png",
   "environment": "*",
   "entrypoints": {
     "main": [
