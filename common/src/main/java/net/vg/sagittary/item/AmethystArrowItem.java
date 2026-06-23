@@ -1,5 +1,9 @@
 package net.vg.sagittary.item;
 
+// DEPRECATED: Amethyst arrow is now part of the component system
+// This file is kept for reference but should not be used
+
+/*
 import net.minecraft.core.Direction;
 import net.minecraft.core.Position;
 import net.minecraft.world.entity.LivingEntity;
@@ -12,7 +16,7 @@ import net.vg.sagittary.entity.AmethystArrowEntity;
 import org.jetbrains.annotations.Nullable;
 
 public class AmethystArrowItem extends ArrowItem {
-    
+
     public AmethystArrowItem(Properties properties) {
         super(properties);
     }
@@ -29,3 +33,4 @@ public class AmethystArrowItem extends ArrowItem {
         return arrow;
     }
 }
+*/
