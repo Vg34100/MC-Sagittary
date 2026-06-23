@@ -7,19 +7,16 @@ import net.vg.sagittary.entity.ComponentArrowEntity;
 
 /**
  * Effect for diamond tips - piercing arrows that pass through up to 4 entities.
- * Damage reduces by 20% per pierce.
+ * Damage reduces slightly per pierce.
+ *
+ * Note: Pierce count is stored in the entity, not this effect, because
+ * effect instances may be recreated during the arrow's lifetime.
  */
 public class DiamondTipEffect implements ComponentEffect {
-    private int pierceCount = 0;
-    private static final int MAX_PIERCES = 4;
-    private static final float DAMAGE_REDUCTION_PER_PIERCE = 0.2f;
 
     @Override
     public void onEntityHit(EntityHitResult entityHitResult, ComponentArrowEntity arrow) {
         if (entityHitResult.getEntity() instanceof LivingEntity target && !arrow.level().isClientSide()) {
-            // Note: Damage reduction is handled by tracking pierceCount
-            // The arrow entity calculates damage based on this
-
             // Diamond particles on pierce
             for (int i = 0; i < 12; i++) {
                 arrow.level().addParticle(ParticleTypes.ENCHANTED_HIT,
@@ -31,14 +28,15 @@ public class DiamondTipEffect implements ComponentEffect {
                         (arrow.getRandom().nextDouble() - 0.5) * 0.3);
             }
 
-            pierceCount++;
+            // Increment pierce count after hit
+            arrow.incrementPierceCount();
         }
     }
 
     @Override
     public boolean shouldContinueAfterEntityHit(ComponentArrowEntity arrow) {
         // Continue through entities until max pierces reached
-        return pierceCount < MAX_PIERCES;
+        return arrow.canPierce();
     }
 
     @Override
