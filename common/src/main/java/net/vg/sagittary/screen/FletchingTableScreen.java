@@ -1,20 +1,18 @@
 package net.vg.sagittary.screen;
 
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.player.Inventory;
 import net.vg.sagittary.menu.FletchingTableMenu;
 import net.vg.sagittary.util.Identifier;
 
 public class FletchingTableScreen extends AbstractContainerScreen<FletchingTableMenu> {
-    private static final ResourceLocation TEXTURE = Identifier.of("textures/gui/fletching_table.png");
+    private static final net.minecraft.resources.Identifier TEXTURE = Identifier.of("textures/gui/fletching_table.png");
     
     public FletchingTableScreen(FletchingTableMenu menu, Inventory playerInventory, Component title) {
-        super(menu, playerInventory, title);
-        this.imageHeight = 166;
-        this.imageWidth = 176;
+        super(menu, playerInventory, title, 176, 166);
     }
     
     @Override
@@ -24,15 +22,9 @@ public class FletchingTableScreen extends AbstractContainerScreen<FletchingTable
     }
     
     @Override
-    public void render(GuiGraphics guiGraphics, int mouseX, int mouseY, float partialTick) {
-        super.render(guiGraphics, mouseX, mouseY, partialTick);
-        this.renderTooltip(guiGraphics, mouseX, mouseY);
-    }
-    
-    @Override
-    protected void renderBg(GuiGraphics guiGraphics, float partialTick, int mouseX, int mouseY) {
-        int x = (this.width - this.imageWidth) / 2;
-        int y = (this.height - this.imageHeight) / 2;
-        guiGraphics.blit(TEXTURE, x, y, 0.0f, 0.0f, this.imageWidth, this.imageHeight, 256, 256);
+    public void extractBackground(GuiGraphicsExtractor guiGraphics, int mouseX, int mouseY, float partialTick) {
+        int x = this.leftPos;
+        int y = this.topPos;
+        guiGraphics.blit(RenderPipelines.GUI_TEXTURED, TEXTURE, x, y, 0.0f, 0.0f, this.imageWidth, this.imageHeight, 256, 256);
     }
 }

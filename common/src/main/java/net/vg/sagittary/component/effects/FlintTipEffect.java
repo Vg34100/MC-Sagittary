@@ -13,7 +13,7 @@ public class FlintTipEffect implements ComponentEffect {
     @Override
     public void onTick(ComponentArrowEntity arrow) {
         // Add occasional crit particles for visual debugging
-        if (arrow.level().isClientSide && !arrow.onGround() && arrow.getRandom().nextInt(5) == 0) {
+        if (arrow.level().isClientSide() && !arrow.onGround() && arrow.getRandom().nextInt(5) == 0) {
             arrow.level().addParticle(ParticleTypes.CRIT,
                 arrow.getX(), arrow.getY(), arrow.getZ(), 
                 0.0, 0.0, 0.0);

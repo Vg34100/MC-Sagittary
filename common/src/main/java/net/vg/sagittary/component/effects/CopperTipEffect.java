@@ -3,9 +3,7 @@ package net.vg.sagittary.component.effects;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.*;
-import net.minecraft.world.entity.MobSpawnType;
 import net.minecraft.world.phys.EntityHitResult;
-import net.minecraft.world.phys.Vec3;
 import net.vg.sagittary.entity.ComponentArrowEntity;
 
 /**
@@ -26,7 +24,7 @@ public class CopperTipEffect implements ComponentEffect {
                     serverLevel,
                     null,
                     target.blockPosition(),
-                    MobSpawnType.EVENT,
+                    EntitySpawnReason.EVENT,
                     false,
                     false
             );
@@ -41,7 +39,7 @@ public class CopperTipEffect implements ComponentEffect {
     @Override
     public void onTick(ComponentArrowEntity arrow) {
         // Copper arrows get electric sparks
-        if (arrow.level().isClientSide && !arrow.onGround() && arrow.getRandom().nextInt(4) == 0) {
+        if (arrow.level().isClientSide() && !arrow.onGround() && arrow.getRandom().nextInt(4) == 0) {
             arrow.level().addParticle(ParticleTypes.ELECTRIC_SPARK,
                 arrow.getX() + (arrow.getRandom().nextDouble() - 0.5) * 0.2,
                 arrow.getY() + (arrow.getRandom().nextDouble() - 0.5) * 0.2,

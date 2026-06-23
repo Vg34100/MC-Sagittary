@@ -15,7 +15,7 @@ public class BlazeRodShaftEffect implements ComponentEffect {
         if (entityHitResult.getEntity() instanceof LivingEntity target) {
             // Set target on fire
             target.setRemainingFireTicks(100); // 5 seconds of fire
-            if (!arrow.level().isClientSide) {
+            if (!arrow.level().isClientSide()) {
                 System.out.println("Applied fire effect from blaze rod shaft!");
             }
         }
@@ -24,7 +24,7 @@ public class BlazeRodShaftEffect implements ComponentEffect {
     @Override
     public void onTick(ComponentArrowEntity arrow) {
         // Blaze rod arrows leave fire trail
-        if (arrow.level().isClientSide && !arrow.onGround() && arrow.getRandom().nextInt(2) == 0) {
+        if (arrow.level().isClientSide() && !arrow.onGround() && arrow.getRandom().nextInt(2) == 0) {
             arrow.level().addParticle(ParticleTypes.FLAME,
                 arrow.getX() + (arrow.getRandom().nextDouble() - 0.5) * 0.2,
                 arrow.getY() + (arrow.getRandom().nextDouble() - 0.5) * 0.2,

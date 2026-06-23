@@ -11,7 +11,7 @@ public class PaperFletchingEffect implements ComponentEffect {
     @Override
     public void onBlockHit(BlockHitResult blockHitResult, ComponentArrowEntity arrow) {
         // Paper fletching arrows are destroyed when hitting blocks/ground
-        if (!arrow.level().isClientSide) {
+        if (!arrow.level().isClientSide()) {
             System.out.println("Paper fletching arrow destroyed on block hit!");
         }
         arrow.discard();

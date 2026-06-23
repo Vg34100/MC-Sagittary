@@ -16,10 +16,10 @@ public class AmethystTipEffect implements ComponentEffect {
     public void onEntityHit(EntityHitResult entityHitResult, ComponentArrowEntity arrow) {
         if (entityHitResult.getEntity() instanceof LivingEntity target) {
             // Apply slowness effect like original amethyst arrow
-            target.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 20, 255));
+            target.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 20, 255));
             
             // Add particle burst on hit
-            if (!arrow.level().isClientSide) {
+            if (!arrow.level().isClientSide()) {
                 for (int i = 0; i < 10; i++) {
                     arrow.level().addParticle(ParticleTypes.END_ROD,
                         target.getX() + (arrow.getRandom().nextDouble() - 0.5) * 0.8,
@@ -36,7 +36,7 @@ public class AmethystTipEffect implements ComponentEffect {
     @Override
     public void onTick(ComponentArrowEntity arrow) {
         // Amethyst arrows get purple particles like the original amethyst arrow
-        if (arrow.level().isClientSide && !arrow.onGround()) {
+        if (arrow.level().isClientSide() && !arrow.onGround()) {
             arrow.level().addParticle(ParticleTypes.END_ROD, 
                 arrow.getX(), arrow.getY(), arrow.getZ(), 
                 0.0, 0.0, 0.0);

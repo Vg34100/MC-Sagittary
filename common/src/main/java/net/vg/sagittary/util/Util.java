@@ -4,10 +4,10 @@ import dev.architectury.platform.Platform;
 import dev.architectury.registry.registries.DeferredRegister;
 import dev.architectury.registry.registries.Registrar;
 import dev.architectury.registry.registries.RegistrySupplier;
+import net.minecraft.client.data.models.model.ModelTemplate;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
-import net.minecraft.data.models.model.ModelTemplate;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.Item;
@@ -32,19 +32,19 @@ public class Util {
     ) {}
 
     // Helper method to create resource locations with the mod namespace
-    public static ResourceLocation createResource(String path) {
-        return ResourceLocation.fromNamespaceAndPath(Sagittary.MOD_ID, path);
+    public static Identifier createResource(String path) {
+        return Identifier.fromNamespaceAndPath(Sagittary.MOD_ID, path);
     }
 
     // Helper method to create a ResourceKey for a block
     public static ResourceKey<Block> createBlockKey(String path) {
-        ResourceLocation resourceLocation = createResource(path);
+        Identifier resourceLocation = createResource(path);
         return ResourceKey.create(Registries.BLOCK, resourceLocation);
     }
 
     // Helper method to create a ResourceKey for an item
     public static ResourceKey<Item> createItemKey(String path) {
-        ResourceLocation resourceLocation = createResource(path);
+        Identifier resourceLocation = createResource(path);
         return ResourceKey.create(Registries.ITEM, resourceLocation);
     }
 
@@ -56,7 +56,7 @@ public class Util {
                 .collect(Collectors.joining(" "));
 
         // Create a ResourceLocation for the item
-        ResourceLocation resourceLocation = Identifier.of(path);
+        Identifier resourceLocation = net.vg.sagittary.util.Identifier.of(path);
 
         // Create a ResourceKey for the item
         ResourceKey<Item> itemKey = ResourceKey.create(Registries.ITEM, resourceLocation);
@@ -75,37 +75,36 @@ public class Util {
     }
 
 // ===================================================
-    public static <T extends Block> RegistrySupplier<T> registerWithItem(DeferredRegister<Block> registerB, Registrar<Block> registrarB, DeferredRegister<Item> registerI, Registrar<Item> registrarI, ResourceLocation name, Supplier<T> block) {
+    public static <T extends Block> RegistrySupplier<T> registerWithItem(DeferredRegister<Block> registerB, Registrar<Block> registrarB, DeferredRegister<Item> registerI, Registrar<Item> registrarI, Identifier name, Supplier<T> block) {
         // Register the block
         RegistrySupplier<T> toReturn = registerWithoutItem(registerB, registrarB, name, block);
 
         // Create a ResourceKey for the block item
         ResourceKey<Item> itemKey = ResourceKey.create(Registries.ITEM, name);
 
-        // Register the block item with proper ID
         registerItem(registerI, registrarI, name, () -> {
-            Item.Properties properties = new Item.Properties();
+            Item.Properties properties = new Item.Properties().setId(itemKey);
             return new BlockItem(toReturn.get(), properties);
         });
 
         return toReturn;
     }
 
-    public static <T extends Block> RegistrySupplier<T> registerWithoutItem(DeferredRegister<Block> register, Registrar<Block> registrar, ResourceLocation path, Supplier<T> block) {
+    public static <T extends Block> RegistrySupplier<T> registerWithoutItem(DeferredRegister<Block> register, Registrar<Block> registrar, Identifier path, Supplier<T> block) {
         if (Platform.isNeoForge()) {
             return register.register(path.getPath(), block);
         }
         return registrar.register(path, block);
     }
 
-    public static <T extends Item> RegistrySupplier<T> registerItem(DeferredRegister<Item> register, Registrar<Item> registrar, ResourceLocation path, Supplier<T> itemSupplier) {
+    public static <T extends Item> RegistrySupplier<T> registerItem(DeferredRegister<Item> register, Registrar<Item> registrar, Identifier path, Supplier<T> itemSupplier) {
         if (Platform.isNeoForge()) {
             return register.register(path.getPath(), itemSupplier);
         }
         return registrar.register(path, itemSupplier);
     }
 
-    public static <T extends EntityType<?>> RegistrySupplier<T> registerEntity(DeferredRegister<EntityType<?>> register, Registrar<EntityType<?>> registrar, ResourceLocation path, Supplier<T> entitySupplier) {
+    public static <T extends EntityType<?>> RegistrySupplier<T> registerEntity(DeferredRegister<EntityType<?>> register, Registrar<EntityType<?>> registrar, Identifier path, Supplier<T> entitySupplier) {
         if (Platform.isNeoForge()) {
             return register.register(path.getPath(), entitySupplier);
         }

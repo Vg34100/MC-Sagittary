@@ -2,19 +2,17 @@ package net.vg.sagittary.client;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.texture.TextureAtlasSprite;
-import net.minecraft.client.resources.model.Material;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.inventory.InventoryMenu;
 import net.minecraft.world.item.ItemStack;
 import net.vg.sagittary.component.ArrowComponent;
 import net.vg.sagittary.item.ComponentArrowItem;
-import net.vg.sagittary.util.Identifier;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class ComponentArrowTextureManager {
-    private static final Map<String, ResourceLocation> TEXTURE_CACHE = new ConcurrentHashMap<>();
+    private static final Map<String, Identifier> TEXTURE_CACHE = new ConcurrentHashMap<>();
     
     // Base component texture paths
     private static final String TIP_PATH = "components/tips/";
@@ -24,21 +22,21 @@ public class ComponentArrowTextureManager {
     /**
      * Gets the texture identifier for a component arrow based on its components
      */
-    public static ResourceLocation getTextureForComponents(ArrowComponent tip, ArrowComponent shaft, ArrowComponent fletching) {
+    public static Identifier getTextureForComponents(ArrowComponent tip, ArrowComponent shaft, ArrowComponent fletching) {
         String cacheKey = tip.getMaterialName() + "_" + shaft.getMaterialName() + "_" + fletching.getMaterialName();
         
         return TEXTURE_CACHE.computeIfAbsent(cacheKey, key -> {
             // For now, return a composed identifier - actual texture composition will be handled by the renderer
-            return Identifier.of("item/component_arrow_" + cacheKey);
+            return net.vg.sagittary.util.Identifier.of("item/component_arrow_" + cacheKey);
         });
     }
     
     /**
      * Gets the texture for a ComponentArrowItem stack
      */
-    public static ResourceLocation getTextureForStack(ItemStack stack) {
+    public static Identifier getTextureForStack(ItemStack stack) {
         if (!(stack.getItem() instanceof ComponentArrowItem)) {
-            return Identifier.of("item/component_arrow");
+            return net.vg.sagittary.util.Identifier.of("item/component_arrow");
         }
         
         ArrowComponent tip = ComponentArrowItem.getTipFromStack(stack);
@@ -49,25 +47,25 @@ public class ComponentArrowTextureManager {
     }
     
     /**
-     * Gets the ResourceLocation for a component texture
+     * Gets the Identifier for a component texture
      */
-    public static ResourceLocation getTipTexture(ArrowComponent tip) {
-        return Identifier.of(TIP_PATH + tip.getMaterialName());
+    public static Identifier getTipTexture(ArrowComponent tip) {
+        return net.vg.sagittary.util.Identifier.of(TIP_PATH + tip.getMaterialName());
     }
     
-    public static ResourceLocation getShaftTexture(ArrowComponent shaft) {
-        return Identifier.of(SHAFT_PATH + shaft.getMaterialName());
+    public static Identifier getShaftTexture(ArrowComponent shaft) {
+        return net.vg.sagittary.util.Identifier.of(SHAFT_PATH + shaft.getMaterialName());
     }
     
-    public static ResourceLocation getFletchingTexture(ArrowComponent fletching) {
-        return Identifier.of(FLETCHING_PATH + fletching.getMaterialName());
+    public static Identifier getFletchingTexture(ArrowComponent fletching) {
+        return net.vg.sagittary.util.Identifier.of(FLETCHING_PATH + fletching.getMaterialName());
     }
     
     /**
      * Gets the base arrow texture
      */
-    public static ResourceLocation getBaseTexture() {
-        return Identifier.of("item/component_arrow");
+    public static Identifier getBaseTexture() {
+        return net.vg.sagittary.util.Identifier.of("item/component_arrow");
     }
     
     /**

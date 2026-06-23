@@ -21,7 +21,7 @@ public final class SagittaryNeoForge {
         
         // Add setup listeners
         modEventBus.addListener(this::commonSetup);
-        if(FMLEnvironment.dist.isClient()) {
+        if(FMLEnvironment.getDist().isClient()) {
             modEventBus.addListener(this::clientSetup);
             modEventBus.addListener(this::registerEntityRenderers);
             modEventBus.addListener(this::registerMenuScreens);

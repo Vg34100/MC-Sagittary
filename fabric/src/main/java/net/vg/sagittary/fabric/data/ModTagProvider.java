@@ -1,10 +1,9 @@
 package net.vg.sagittary.fabric.data;
 
-import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
-import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagProvider;
+import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
+import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagsProvider;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.biome.Biome;
 import net.vg.sagittary.registry.ObjectRegistry;
@@ -14,7 +13,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
-public class ModTagProvider extends FabricTagProvider<Biome> {
+public class ModTagProvider extends FabricTagsProvider<Biome> {
     //  EXAMPLE: Wild Carrot (Single)
     //  public static final TagKey<Biome> WILD_CARROT_BIOME_TAG = TagKey.create(Registries.BIOME, ResourceLocation.fromNamespaceAndPath("wildcrops", "spawns_wild_carrot"));
 
@@ -34,7 +33,7 @@ public class ModTagProvider extends FabricTagProvider<Biome> {
 //    }
 
 
-    public ModTagProvider(FabricDataOutput output, CompletableFuture<HolderLookup.Provider> registriesFuture) {
+    public ModTagProvider(FabricPackOutput output, CompletableFuture<HolderLookup.Provider> registriesFuture) {
         super(output, Registries.BIOME, registriesFuture);
     }
 

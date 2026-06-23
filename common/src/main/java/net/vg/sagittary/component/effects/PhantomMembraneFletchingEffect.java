@@ -1,7 +1,6 @@
 package net.vg.sagittary.component.effects;
 
 import net.minecraft.core.particles.ParticleTypes;
-import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.vg.sagittary.entity.ComponentArrowEntity;
 
 /**
@@ -15,7 +14,7 @@ public class PhantomMembraneFletchingEffect implements ComponentEffect {
             // Gravity reduction is now handled via getGravityModifier()
             
             // Phantom membrane arrows get ghostly trail
-            if (arrow.level().isClientSide && arrow.getRandom().nextInt(3) == 0) {
+            if (arrow.level().isClientSide() && arrow.getRandom().nextInt(3) == 0) {
                 arrow.level().addParticle(ParticleTypes.SOUL,
                     arrow.getX() + (arrow.getRandom().nextDouble() - 0.5) * 0.3,
                     arrow.getY() + (arrow.getRandom().nextDouble() - 0.5) * 0.3,
