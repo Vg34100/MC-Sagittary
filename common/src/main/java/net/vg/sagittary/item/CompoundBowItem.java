@@ -89,7 +89,9 @@ public class CompoundBowItem extends BowItem {
 
     private void shootArrow(ServerLevel level, Player player, ItemStack bow, ItemStack arrowStack,
                            ArrowItem arrowItem, float power, float angleOffset, boolean hasInfinity) {
-        AbstractArrow arrow = arrowItem.createArrow(level, arrowStack, player, bow);
+        // Pass single-item copy to prevent pickup duplication
+        ItemStack singleArrow = arrowStack.copyWithCount(1);
+        AbstractArrow arrow = arrowItem.createArrow(level, singleArrow, player, bow);
 
         arrow.shootFromRotation(player, player.getXRot(), player.getYRot() + angleOffset,
                 0.0F, power * 3.0F, 1.0F);

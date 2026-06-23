@@ -49,7 +49,9 @@ public class IronBowItem extends BowItem {
 
         if (level instanceof ServerLevel serverLevel) {
             ArrowItem arrowItem = arrowStack.getItem() instanceof ArrowItem ai ? ai : (ArrowItem) Items.ARROW;
-            AbstractArrow arrow = arrowItem.createArrow(serverLevel, arrowStack, player, stack);
+            // Pass single-item copy to prevent pickup duplication
+            ItemStack singleArrow = arrowStack.copyWithCount(1);
+            AbstractArrow arrow = arrowItem.createArrow(serverLevel, singleArrow, player, stack);
 
             // 10% faster arrow velocity for iron bow
             arrow.shootFromRotation(player, player.getXRot(), player.getYRot(), 0.0F, power * 3.3F, 1.0F);
