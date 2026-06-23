@@ -5,6 +5,7 @@ This directory is the source of truth for gameplay and feature documentation.
 Current pages:
 
 - `arrow-components.md`: how the modular arrow system currently works
+- `porting-1.21.1-to-26.1.2.md`: build and toolchain migration notes for the 26.1.2 line
 - `release-notes.md`: current release-state summary and known issues
 
 Workflow:
