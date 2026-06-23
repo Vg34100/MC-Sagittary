@@ -9,4 +9,7 @@ dependencies {
     implementation "net.fabricmc:fabric-loader:$rootProject.fabric_loader_version"
 
     implementation "dev.architectury:architectury:$rootProject.architectury_api_version"
+
+    // JEI API for compile-time access (actual runtime provided by platform modules)
+    compileOnly "mezz.jei:jei-${rootProject.minecraft_version}-common-api:${rootProject.jei_version}"
 }

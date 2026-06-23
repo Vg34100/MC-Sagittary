@@ -20,6 +20,22 @@ Use it as the first file to load before exploring the tree.
 - Reuse known build/test commands instead of re-deriving them each turn.
 - Summarize findings instead of repeating raw command output back to the user.
 
+### Build Output Context Waste (CRITICAL)
+
+**The #1 source of context waste is verbose build/compiler output.**
+
+Common mistakes that waste context:
+- Running `./gradlew build 2>&1 | tail -200` (grabs too much)
+- Not filtering compiler error output (same error repeated 3x)
+- Full stack traces for simple "symbol not found" errors
+- Gradle boilerplate warnings about deprecated features
+
+**Solutions:**
+1. Use `build-smart.py` (see Compile/Test Workflow section)
+2. If raw gradle is needed, filter aggressively: `| grep -E "(error:|BUILD)" | head -20`
+3. Fix multiple related errors before rebuilding (don't fix-rebuild-fix-rebuild)
+4. Read error messages carefully - often one fix resolves many errors
+
 ## Fast Search Workflow
 
 ### Find files
@@ -233,6 +249,62 @@ Preferred workflow:
 If automation is later added, it should push repo docs into the GitHub wiki repo. Until then, avoid treating the GitHub wiki as the primary source.
 
 ## Compile/Test Workflow
+
+### CRITICAL: Use the Smart Build Script
+
+**ALWAYS use `build-smart.py` instead of raw Gradle commands.**
+
+Raw Gradle output is extremely verbose (100-200+ lines per failed build) and wastes massive amounts of context. The smart build script parses errors and shows only essential information.
+
+```bash
+# On Windows (cmd.exe) - PREFERRED for this repo
+cmd.exe /c "cd /d A:\Projects\The Experiment Lab\Minecraft\sagittary && python build-smart.py"
+
+# Or from the project directory
+python build-smart.py
+python build-smart.py runClient
+python build-smart.py clean
+```
+
+**Example output comparison:**
+
+Raw Gradle (BAD - 150+ lines):
+```
+A:\Projects\...\BoneShaftEffect.java:26: error: cannot find symbol
+        return entity instanceof Zombie || entity instanceof Skeleton ||
+                                 ^
+  symbol:   class Zombie
+  location: class BoneShaftEffect
+A:\Projects\...\BoneShaftEffect.java:26: error: cannot find symbol
+        return entity instanceof Zombie || entity instanceof Skeleton ||
+                                                             ^
+  symbol:   class Skeleton
+... (100 more lines of the same error in different forms)
+```
+
+Smart Build (GOOD - 10 lines):
+```
+==================================================
+BUILD FAILED - 4 error(s)
+==================================================
+
+Missing symbols:
+  BoneShaftEffect.java:26 - cannot find: Zombie, Skeleton, Husk
+
+--------------------------------------------------
+Fix these 4 error(s) and rebuild
+```
+
+### Windows vs WSL
+
+For this repo specifically, **use cmd.exe** because the gradle.properties has Windows-style Java paths.
+
+```bash
+# Preferred for this repo
+cmd.exe /c "cd /d A:\Projects\The Experiment Lab\Minecraft\sagittary && python build-smart.py"
+```
+
+### WSL Mirror Build (for pure WSL projects)
 
 For WSL-on-Windows or mixed-filesystem setups, prefer a mirror build to avoid path, lock, and Gradle cache issues.
 
