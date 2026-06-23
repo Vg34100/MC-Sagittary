@@ -3,13 +3,14 @@ package net.vg.sagittary.item;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.projectile.AbstractArrow;
 import net.minecraft.world.item.ArrowItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.CustomModelData;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.entity.projectile.arrow.AbstractArrow;
 
 import java.util.List;
 import java.util.function.Consumer;
@@ -36,20 +37,20 @@ public class ComponentArrowItem extends ArrowItem {
     }
     
     @Override
-    public void appendHoverText(ItemStack stack, Item.TooltipContext tooltipContext, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
-        super.appendHoverText(stack, tooltipContext, tooltipComponents, tooltipFlag);
+    public void appendHoverText(ItemStack stack, Item.TooltipContext tooltipContext, TooltipDisplay tooltipDisplay, Consumer<Component> consumer, TooltipFlag tooltipFlag) {
+        super.appendHoverText(stack, tooltipContext, tooltipDisplay, consumer, tooltipFlag);
         
         ArrowParts parts = getArrowPartsFromStack(stack);
-        tooltipComponents.add(Component.literal(""));
-        tooltipComponents.add(Component.translatable("tooltip.sagittary.component_arrow").withStyle(style -> style.withColor(0x9A7FBF)));
+        consumer.accept(Component.literal(""));
+        consumer.accept(Component.translatable("tooltip.sagittary.component_arrow").withStyle(style -> style.withColor(0x9A7FBF)));
         
         ArrowComponent tip = parts.getTipComponent();
         ArrowComponent shaft = parts.getShaftComponent();
         ArrowComponent fletching = parts.getFletchingComponent();
         
-        tooltipComponents.add(Component.translatable("tooltip.sagittary.tip").append(": ").append(tip.getDisplayName()));
-        tooltipComponents.add(Component.translatable("tooltip.sagittary.shaft").append(": ").append(shaft.getDisplayName()));
-        tooltipComponents.add(Component.translatable("tooltip.sagittary.fletching").append(": ").append(fletching.getDisplayName()));
+        consumer.accept(Component.translatable("tooltip.sagittary.tip").append(": ").append(tip.getDisplayName()));
+        consumer.accept(Component.translatable("tooltip.sagittary.shaft").append(": ").append(shaft.getDisplayName()));
+        consumer.accept(Component.translatable("tooltip.sagittary.fletching").append(": ").append(fletching.getDisplayName()));
     }
     
     public static ItemStack createComponentArrow(ArrowComponent tip, ArrowComponent shaft, ArrowComponent fletching) {
@@ -60,7 +61,8 @@ public class ComponentArrowItem extends ArrowItem {
     
     public static void setArrowPartsOnStack(ItemStack stack, ArrowParts parts) {
         stack.set(ObjectRegistry.ARROW_PARTS.get(), parts);
-        stack.set(DataComponents.CUSTOM_MODEL_DATA, new CustomModelData(getModelData(parts)));
+        // 26.1.2: CustomModelData(floats, flags, strings, colors) - select property reads from strings list
+        stack.set(DataComponents.CUSTOM_MODEL_DATA, new CustomModelData(List.of(), List.of(), List.of(String.valueOf(getModelData(parts))), List.of()));
     }
     
     public static ArrowParts getArrowPartsFromStack(ItemStack stack) {

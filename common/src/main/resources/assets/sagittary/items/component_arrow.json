@@ -1,0 +1,37 @@
+{
+  "model": {
+    "type": "minecraft:select",
+    "property": "minecraft:custom_model_data",
+    "index": 0,
+    "cases": [
+      {"when": "1", "model": {"type": "minecraft:model", "model": "sagittary:item/component_arrow_flint_stick_feather"}},
+      {"when": "2", "model": {"type": "minecraft:model", "model": "sagittary:item/component_arrow_flint_stick_paper"}},
+      {"when": "3", "model": {"type": "minecraft:model", "model": "sagittary:item/component_arrow_flint_stick_phantom_membrane"}},
+      {"when": "4", "model": {"type": "minecraft:model", "model": "sagittary:item/component_arrow_flint_bamboo_feather"}},
+      {"when": "5", "model": {"type": "minecraft:model", "model": "sagittary:item/component_arrow_flint_bamboo_paper"}},
+      {"when": "6", "model": {"type": "minecraft:model", "model": "sagittary:item/component_arrow_flint_bamboo_phantom_membrane"}},
+      {"when": "7", "model": {"type": "minecraft:model", "model": "sagittary:item/component_arrow_flint_blaze_rod_feather"}},
+      {"when": "8", "model": {"type": "minecraft:model", "model": "sagittary:item/component_arrow_flint_blaze_rod_paper"}},
+      {"when": "9", "model": {"type": "minecraft:model", "model": "sagittary:item/component_arrow_flint_blaze_rod_phantom_membrane"}},
+      {"when": "10", "model": {"type": "minecraft:model", "model": "sagittary:item/component_arrow_amethyst_stick_feather"}},
+      {"when": "11", "model": {"type": "minecraft:model", "model": "sagittary:item/component_arrow_amethyst_stick_paper"}},
+      {"when": "12", "model": {"type": "minecraft:model", "model": "sagittary:item/component_arrow_amethyst_stick_phantom_membrane"}},
+      {"when": "13", "model": {"type": "minecraft:model", "model": "sagittary:item/component_arrow_amethyst_bamboo_feather"}},
+      {"when": "14", "model": {"type": "minecraft:model", "model": "sagittary:item/component_arrow_amethyst_bamboo_paper"}},
+      {"when": "15", "model": {"type": "minecraft:model", "model": "sagittary:item/component_arrow_amethyst_bamboo_phantom_membrane"}},
+      {"when": "16", "model": {"type": "minecraft:model", "model": "sagittary:item/component_arrow_amethyst_blaze_rod_feather"}},
+      {"when": "17", "model": {"type": "minecraft:model", "model": "sagittary:item/component_arrow_amethyst_blaze_rod_paper"}},
+      {"when": "18", "model": {"type": "minecraft:model", "model": "sagittary:item/component_arrow_amethyst_blaze_rod_phantom_membrane"}},
+      {"when": "19", "model": {"type": "minecraft:model", "model": "sagittary:item/component_arrow_copper_stick_feather"}},
+      {"when": "20", "model": {"type": "minecraft:model", "model": "sagittary:item/component_arrow_copper_stick_paper"}},
+      {"when": "21", "model": {"type": "minecraft:model", "model": "sagittary:item/component_arrow_copper_stick_phantom_membrane"}},
+      {"when": "22", "model": {"type": "minecraft:model", "model": "sagittary:item/component_arrow_copper_bamboo_feather"}},
+      {"when": "23", "model": {"type": "minecraft:model", "model": "sagittary:item/component_arrow_copper_bamboo_paper"}},
+      {"when": "24", "model": {"type": "minecraft:model", "model": "sagittary:item/component_arrow_copper_bamboo_phantom_membrane"}},
+      {"when": "25", "model": {"type": "minecraft:model", "model": "sagittary:item/component_arrow_copper_blaze_rod_feather"}},
+      {"when": "26", "model": {"type": "minecraft:model", "model": "sagittary:item/component_arrow_copper_blaze_rod_paper"}},
+      {"when": "27", "model": {"type": "minecraft:model", "model": "sagittary:item/component_arrow_copper_blaze_rod_phantom_membrane"}}
+    ],
+    "fallback": {"type": "minecraft:model", "model": "sagittary:item/component_arrow"}
+  }
+}
