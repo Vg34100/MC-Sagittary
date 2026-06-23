@@ -31,6 +31,12 @@ public class ComponentArrowEntity extends AbstractArrow {
     private ComponentEffect shaftEffect = ArrowComponent.STICK_SHAFT.createEffect();
     private ComponentEffect fletchingEffect = ArrowComponent.FEATHER_FLETCHING.createEffect();
 
+    // Persistent counters for effects that need state across recreations
+    private int bounceCount = 0;
+    private int pierceCount = 0;
+    private static final int MAX_BOUNCES = 4;
+    private static final int MAX_PIERCES = 4;
+
     public ComponentArrowEntity(EntityType<? extends ComponentArrowEntity> entityType, Level level) {
         super(entityType, level);
     }
@@ -213,9 +219,30 @@ public class ComponentArrowEntity extends AbstractArrow {
     @Override
     protected void onHitEntity(EntityHitResult entityHitResult) {
         ensureComponentStateLoaded();
-        super.onHitEntity(entityHitResult);
 
-        // Apply entity hit effects from all components
+        // Check if any effect wants arrow to continue after hit (pierce/bounce)
+        boolean shouldContinue = this.tipEffect.shouldContinueAfterEntityHit(this) ||
+                                 this.shaftEffect.shouldContinueAfterEntityHit(this) ||
+                                 this.fletchingEffect.shouldContinueAfterEntityHit(this);
+
+        if (shouldContinue) {
+            // Apply damage manually without stopping the arrow
+            if (entityHitResult.getEntity() instanceof net.minecraft.world.entity.LivingEntity target) {
+                // Calculate damage: base 2.0 * component modifiers * velocity
+                float totalDamageModifier = tipComponent.getDamageModifier() * shaftComponent.getDamageModifier() * fletchingComponent.getDamageModifier();
+                float baseDamage = 2.0f * totalDamageModifier;
+                // Apply velocity-based damage bonus like vanilla
+                double velocity = this.getDeltaMovement().length();
+                float damage = (float) Math.max(baseDamage, baseDamage * velocity);
+                target.hurt(this.damageSources().arrow(this, this.getOwner()), damage);
+            }
+            // Don't call super - arrow continues flying
+        } else {
+            // Normal behavior - arrow stops after hitting
+            super.onHitEntity(entityHitResult);
+        }
+
+        // Apply entity hit effects from all components (particles, bouncing, etc.)
         this.tipEffect.onEntityHit(entityHitResult, this);
         this.shaftEffect.onEntityHit(entityHitResult, this);
         this.fletchingEffect.onEntityHit(entityHitResult, this);
@@ -223,10 +250,18 @@ public class ComponentArrowEntity extends AbstractArrow {
 
     @Override
     protected void onHitBlock(BlockHitResult blockHitResult) {
-        // Call super first to let vanilla settling logic run
-        super.onHitBlock(blockHitResult);
+        // Check if any effect wants to handle the hit and continue (e.g., slime bounce)
+        // This must be checked BEFORE super.onHitBlock() which would settle the arrow
+        boolean shouldContinue = this.tipEffect.handleBlockHitAndContinue(blockHitResult, this) ||
+                                 this.shaftEffect.handleBlockHitAndContinue(blockHitResult, this) ||
+                                 this.fletchingEffect.handleBlockHitAndContinue(blockHitResult, this);
 
-        // Apply block hit effects from all components (these should not interfere with settling)
+        if (!shouldContinue) {
+            // Normal settling - call super to let vanilla handle it
+            super.onHitBlock(blockHitResult);
+        }
+
+        // Apply additional block hit effects (particles, sounds, etc.)
         this.tipEffect.onBlockHit(blockHitResult, this);
         this.shaftEffect.onBlockHit(blockHitResult, this);
         this.fletchingEffect.onBlockHit(blockHitResult, this);
@@ -264,6 +299,8 @@ public class ComponentArrowEntity extends AbstractArrow {
         compound.putString("TipComponent", this.tipComponent.getMaterialName());
         compound.putString("ShaftComponent", this.shaftComponent.getMaterialName());
         compound.putString("FletchingComponent", this.fletchingComponent.getMaterialName());
+        compound.putInt("BounceCount", this.bounceCount);
+        compound.putInt("PierceCount", this.pierceCount);
     }
 
     @Override
@@ -285,6 +322,10 @@ public class ComponentArrowEntity extends AbstractArrow {
             this.entityData.set(FLETCHING_COMPONENT, fletchingName);
         });
 
+        // Load effect counters
+        compound.getInt("BounceCount").ifPresent(count -> this.bounceCount = count);
+        compound.getInt("PierceCount").ifPresent(count -> this.pierceCount = count);
+
         // Recreate effect instances after loading
         this.tipEffect = this.tipComponent.createEffect();
         this.shaftEffect = this.shaftComponent.createEffect();
@@ -298,6 +339,15 @@ public class ComponentArrowEntity extends AbstractArrow {
     public ArrowComponent getTipComponent() { return tipComponent; }
     public ArrowComponent getShaftComponent() { return shaftComponent; }
     public ArrowComponent getFletchingComponent() { return fletchingComponent; }
+
+    // Bounce/pierce count management for effects
+    public int getBounceCount() { return bounceCount; }
+    public void incrementBounceCount() { bounceCount++; }
+    public boolean canBounce() { return bounceCount < MAX_BOUNCES; }
+
+    public int getPierceCount() { return pierceCount; }
+    public void incrementPierceCount() { pierceCount++; }
+    public boolean canPierce() { return pierceCount < MAX_PIERCES; }
 
     // Public accessor for protected isInGround() method (for effects to use)
     public boolean isArrowInGround() {

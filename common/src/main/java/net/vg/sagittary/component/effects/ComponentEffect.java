@@ -97,4 +97,17 @@ public interface ComponentEffect {
     default boolean shouldContinueAfterEntityHit(ComponentArrowEntity arrow) {
         return false; // Default: stop after hitting entity
     }
+
+    /**
+     * Called BEFORE normal block hit processing to allow effects to intercept.
+     * If this returns true, the arrow will NOT settle into the block (super.onHitBlock won't be called).
+     * Used for bouncing effects like slime.
+     *
+     * @param blockHitResult The hit result containing block information
+     * @param arrow The arrow entity that hit the block
+     * @return true if this effect handled the hit and arrow should continue flying, false for normal settling
+     */
+    default boolean handleBlockHitAndContinue(BlockHitResult blockHitResult, ComponentArrowEntity arrow) {
+        return false; // Default: let arrow settle normally
+    }
 }
