@@ -79,11 +79,22 @@ public interface ComponentEffect {
     /**
      * Called to get the speed modifier for this component.
      * Return a multiplier for the arrow speed (1.0 = normal, 1.9 = 90% faster, 0.95 = 5% slower).
-     * 
+     *
      * @param arrow The arrow entity
      * @return speed multiplier (1.0 = normal speed)
      */
     default double getSpeedModifier(ComponentArrowEntity arrow) {
         return 1.0; // Default: normal speed
+    }
+
+    /**
+     * Called after hitting an entity to determine if the arrow should continue flying.
+     * Used for piercing (diamond) and bouncing (slime) effects.
+     *
+     * @param arrow The arrow entity
+     * @return true if the arrow should continue after hitting an entity, false to stop normally
+     */
+    default boolean shouldContinueAfterEntityHit(ComponentArrowEntity arrow) {
+        return false; // Default: stop after hitting entity
     }
 }

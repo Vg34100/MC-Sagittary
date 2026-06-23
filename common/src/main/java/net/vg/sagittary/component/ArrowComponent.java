@@ -12,12 +12,21 @@ public enum ArrowComponent {
     FLINT_TIP("flint", ComponentType.TIP, Items.FLINT, 1.0f, 0.0f, FlintTipEffect::new),
     AMETHYST_TIP("amethyst", ComponentType.TIP, Items.AMETHYST_SHARD, 1.2f, 0.1f, AmethystTipEffect::new),
     COPPER_TIP("copper", ComponentType.TIP, Items.COPPER_INGOT, 1.0f, 0.0f, CopperTipEffect::new),
-    
-    // Shafts  
+    SLIME_TIP("slime", ComponentType.TIP, Items.SLIME_BALL, 0.8f, -0.1f, SlimeTipEffect::new),
+    GLOWSTONE_TIP("glowstone", ComponentType.TIP, Items.GLOWSTONE_DUST, 1.0f, 0.0f, GlowstoneTipEffect::new),
+    ECHO_SHARD_TIP("echo_shard", ComponentType.TIP, Items.ECHO_SHARD, 1.3f, 0.0f, EchoShardTipEffect::new),
+    ENDER_PEARL_TIP("ender_pearl", ComponentType.TIP, Items.ENDER_PEARL, 1.0f, 0.0f, EnderPearlTipEffect::new),
+    IRON_TIP("iron", ComponentType.TIP, Items.IRON_NUGGET, 1.4f, 0.0f, IronTipEffect::new),
+    GOLD_TIP("gold", ComponentType.TIP, Items.GOLD_NUGGET, 1.1f, 0.15f, GoldTipEffect::new),
+    DIAMOND_TIP("diamond", ComponentType.TIP, Items.DIAMOND, 1.6f, 0.0f, DiamondTipEffect::new),
+
+    // Shafts
     STICK_SHAFT("stick", ComponentType.SHAFT, Items.STICK, 1.0f, 0.0f, StickShaftEffect::new),
     BAMBOO_SHAFT("bamboo", ComponentType.SHAFT, Items.BAMBOO, 1.0f, 0.90f, BambooShaftEffect::new),
     BLAZE_ROD_SHAFT("blaze_rod", ComponentType.SHAFT, Items.BLAZE_ROD, 1.1f, 0.0f, BlazeRodShaftEffect::new),
-    
+    BREEZE_ROD_SHAFT("breeze_rod", ComponentType.SHAFT, Items.BREEZE_ROD, 0.9f, 0.2f, BreezeRodShaftEffect::new),
+    BONE_SHAFT("bone", ComponentType.SHAFT, Items.BONE, 1.15f, 0.0f, BoneShaftEffect::new),
+
     // Fletching
     FEATHER_FLETCHING("feather", ComponentType.FLETCHING, Items.FEATHER, 1.0f, 0.0f, FeatherFletchingEffect::new),
     PAPER_FLETCHING("paper", ComponentType.FLETCHING, Items.PAPER, 1.0f, 0.1f, PaperFletchingEffect::new),
