@@ -83,24 +83,38 @@ public class ComponentArrowItem extends ArrowItem {
     }
 
     private static int getModelData(ArrowParts parts) {
+        // Tips: flint(0), amethyst(1), copper(2), slime(3), glowstone(4), echo_shard(5), ender_pearl(6), iron(7), gold(8), diamond(9)
         int tipIndex = switch (parts.getTipComponent()) {
             case FLINT_TIP -> 0;
             case AMETHYST_TIP -> 1;
             case COPPER_TIP -> 2;
+            case SLIME_TIP -> 3;
+            case GLOWSTONE_TIP -> 4;
+            case ECHO_SHARD_TIP -> 5;
+            case ENDER_PEARL_TIP -> 6;
+            case IRON_TIP -> 7;
+            case GOLD_TIP -> 8;
+            case DIAMOND_TIP -> 9;
             default -> 0;
         };
+        // Shafts: stick(0), bamboo(1), blaze_rod(2), breeze_rod(3), bone(4)
         int shaftIndex = switch (parts.getShaftComponent()) {
             case STICK_SHAFT -> 0;
             case BAMBOO_SHAFT -> 1;
             case BLAZE_ROD_SHAFT -> 2;
+            case BREEZE_ROD_SHAFT -> 3;
+            case BONE_SHAFT -> 4;
             default -> 0;
         };
+        // Fletchings: feather(0), paper(1), phantom_membrane(2)
         int fletchingIndex = switch (parts.getFletchingComponent()) {
             case FEATHER_FLETCHING -> 0;
             case PAPER_FLETCHING -> 1;
             case PHANTOM_MEMBRANE_FLETCHING -> 2;
             default -> 0;
         };
-        return 1 + (tipIndex * 9) + (shaftIndex * 3) + fletchingIndex;
+        // Formula: 1 + (tipIndex * 15) + (shaftIndex * 3) + fletchingIndex
+        // 10 tips * 5 shafts * 3 fletchings = 150 combinations (indices 1-150)
+        return 1 + (tipIndex * 15) + (shaftIndex * 3) + fletchingIndex;
     }
 }

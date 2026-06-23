@@ -6,7 +6,6 @@ import net.minecraft.client.renderer.entity.ArrowRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
 import net.minecraft.client.renderer.entity.state.ArrowRenderState;
 import net.minecraft.resources.Identifier;
-import net.vg.sagittary.entity.AmethystArrowEntity;
 import net.vg.sagittary.entity.ComponentArrowEntity;
 import net.vg.sagittary.registry.ObjectRegistry;
 import net.vg.sagittary.screen.FletchingTableScreen;
@@ -24,7 +23,8 @@ public class SagittaryClient {
     }
     
     public static void initEntityRenderers() {
-        EntityRendererRegistry.register(ObjectRegistry.AMETHYST_ARROW_ENTITY, AmethystArrowRenderer::new);
+        // REMOVED: Amethyst arrow is now part of the component system
+        // EntityRendererRegistry.register(ObjectRegistry.AMETHYST_ARROW_ENTITY, AmethystArrowRenderer::new);
         EntityRendererRegistry.register(ObjectRegistry.COMPONENT_ARROW_ENTITY, ComponentArrowRenderer::new);
     }
     
@@ -32,24 +32,8 @@ public class SagittaryClient {
         MenuScreenRegistry.registerScreenFactory(ObjectRegistry.FLETCHING_TABLE_MENU_TYPE.get(), FletchingTableScreen::new);
     }
     
-    public static class AmethystArrowRenderer extends ArrowRenderer<AmethystArrowEntity, ArrowRenderState> {
-        public static final Identifier ARROW_LOCATION = Identifier.withDefaultNamespace("textures/entity/projectiles/arrow.png");
-        
-        public AmethystArrowRenderer(EntityRendererProvider.Context context) {
-            super(context);
-        }
+    // REMOVED: AmethystArrowRenderer - amethyst arrow is now part of the component system
 
-        @Override
-        public Identifier getTextureLocation(ArrowRenderState renderState) {
-            return ARROW_LOCATION;
-        }
-
-        @Override
-        public ArrowRenderState createRenderState() {
-            return new ArrowRenderState();
-        }
-    }
-    
     public static class ComponentArrowRenderer extends ArrowRenderer<ComponentArrowEntity, ArrowRenderState> {
         public static final Identifier ARROW_LOCATION = Identifier.withDefaultNamespace("textures/entity/projectiles/arrow.png");
         

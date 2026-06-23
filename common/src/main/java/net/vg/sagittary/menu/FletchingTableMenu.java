@@ -11,6 +11,7 @@ import net.minecraft.world.inventory.ResultContainer;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.level.block.Blocks;
 import net.vg.sagittary.component.ArrowComponent;
 import net.vg.sagittary.item.ComponentArrowItem;
@@ -78,16 +79,52 @@ public class FletchingTableMenu extends AbstractContainerMenu {
         ItemStack tipStack = this.fletchingContainer.getItem(TIP_SLOT);
         ItemStack shaftStack = this.fletchingContainer.getItem(SHAFT_SLOT);
         ItemStack fletchingStack = this.fletchingContainer.getItem(FLETCHING_SLOT);
-        
+
         if (!tipStack.isEmpty() && !shaftStack.isEmpty() && !fletchingStack.isEmpty()) {
-            // Validate components
-            ArrowComponent tip = getComponentFromItem(tipStack, ArrowComponent.ComponentType.TIP);
+            // Check for vanilla outputs first
             ArrowComponent shaft = getComponentFromItem(shaftStack, ArrowComponent.ComponentType.SHAFT);
             ArrowComponent fletching = getComponentFromItem(fletchingStack, ArrowComponent.ComponentType.FLETCHING);
-            
+
+            // Special case: Lingering potion + stick + feather = tipped arrows
+            if (tipStack.is(Items.LINGERING_POTION) &&
+                shaft == ArrowComponent.STICK_SHAFT &&
+                fletching == ArrowComponent.FEATHER_FLETCHING) {
+                // Create tipped arrows with the potion effect
+                ItemStack tippedArrow = new ItemStack(Items.TIPPED_ARROW, 8);
+                // Copy potion contents from lingering potion to tipped arrow
+                PotionContents potionContents = tipStack.get(net.minecraft.core.component.DataComponents.POTION_CONTENTS);
+                if (potionContents != null) {
+                    tippedArrow.set(net.minecraft.core.component.DataComponents.POTION_CONTENTS, potionContents);
+                }
+                this.resultContainer.setItem(0, tippedArrow);
+                return;
+            }
+
+            // Validate components for regular arrow crafting
+            ArrowComponent tip = getComponentFromItem(tipStack, ArrowComponent.ComponentType.TIP);
+
             if (tip != null && shaft != null && fletching != null) {
-                ItemStack result = ComponentArrowItem.createComponentArrow(tip, shaft, fletching);
-                result.setCount(6); // Make 6 arrows like bulk crafting
+                ItemStack result;
+
+                // Special case: default components create vanilla arrows (more efficient)
+                if (tip == ArrowComponent.FLINT_TIP &&
+                    shaft == ArrowComponent.STICK_SHAFT &&
+                    fletching == ArrowComponent.FEATHER_FLETCHING) {
+                    // Output vanilla arrows - 8 arrows instead of 6 for efficiency bonus
+                    result = new ItemStack(Items.ARROW, 8);
+                }
+                // Special case: glowstone + stick + feather = spectral arrows
+                else if (tip == ArrowComponent.GLOWSTONE_TIP &&
+                         shaft == ArrowComponent.STICK_SHAFT &&
+                         fletching == ArrowComponent.FEATHER_FLETCHING) {
+                    // Output spectral arrows
+                    result = new ItemStack(Items.SPECTRAL_ARROW, 8);
+                } else {
+                    // Output component arrows
+                    result = ComponentArrowItem.createComponentArrow(tip, shaft, fletching);
+                    result.setCount(6); // Make 6 arrows like bulk crafting
+                }
+
                 this.resultContainer.setItem(0, result);
             } else {
                 this.resultContainer.setItem(0, ItemStack.EMPTY);
@@ -159,6 +196,11 @@ public class FletchingTableMenu extends AbstractContainerMenu {
     }
     
     private boolean canPlaceInFletchingSlot(ItemStack stack) {
+        // Allow lingering potions for tipped arrow crafting
+        if (stack.is(Items.LINGERING_POTION)) {
+            return true;
+        }
+
         // Check if this item can be used as any component
         for (ArrowComponent component : ArrowComponent.values()) {
             if (component.getCraftingItem() == stack.getItem()) {
@@ -192,6 +234,11 @@ public class FletchingTableMenu extends AbstractContainerMenu {
         
         @Override
         public boolean mayPlace(ItemStack stack) {
+            // Special case: allow lingering potions in tip slot for tipped arrows
+            if (this.componentType == ArrowComponent.ComponentType.TIP && stack.is(Items.LINGERING_POTION)) {
+                return true;
+            }
+
             for (ArrowComponent component : ArrowComponent.values()) {
                 if (component.getType() == this.componentType && component.getCraftingItem() == stack.getItem()) {
                     return true;
