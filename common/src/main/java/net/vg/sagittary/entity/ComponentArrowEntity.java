@@ -193,12 +193,21 @@ public class ComponentArrowEntity extends AbstractArrow {
 
     @Override
     public void tick() {
+        // Skip all custom logic when arrow is in ground to not interfere with settling
+        if (this.isInGround()) {
+            super.tick();
+            return;
+        }
+
         ensureComponentStateLoaded();
         super.tick();
 
-        this.tipEffect.onTick(this);
-        this.shaftEffect.onTick(this);
-        this.fletchingEffect.onTick(this);
+        // Only run effects when arrow is still in flight
+        if (!this.isInGround()) {
+            this.tipEffect.onTick(this);
+            this.shaftEffect.onTick(this);
+            this.fletchingEffect.onTick(this);
+        }
     }
 
     @Override
@@ -214,10 +223,10 @@ public class ComponentArrowEntity extends AbstractArrow {
 
     @Override
     protected void onHitBlock(BlockHitResult blockHitResult) {
-        ensureComponentStateLoaded();
+        // Call super first to let vanilla settling logic run
         super.onHitBlock(blockHitResult);
 
-        // Apply block hit effects from all components
+        // Apply block hit effects from all components (these should not interfere with settling)
         this.tipEffect.onBlockHit(blockHitResult, this);
         this.shaftEffect.onBlockHit(blockHitResult, this);
         this.fletchingEffect.onBlockHit(blockHitResult, this);
@@ -295,8 +304,18 @@ public class ComponentArrowEntity extends AbstractArrow {
         return this.isInGround();
     }
 
+    // Public wrapper for SlimeTipEffect bouncing
+    public void setArrowInGround(boolean inGround) {
+        this.setInGround(inGround);
+    }
+
     @Override
     protected double getDefaultGravity() {
+        // Skip gravity modifiers when in ground - use vanilla gravity for proper settling
+        if (this.isInGround()) {
+            return super.getDefaultGravity();
+        }
+
         ensureComponentStateLoaded();
         double baseGravity = super.getDefaultGravity();
         double totalGravityModifier = tipEffect.getGravityModifier(this) *
