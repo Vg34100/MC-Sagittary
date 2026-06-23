@@ -17,10 +17,16 @@ public class ModLangProvider extends FabricLanguageProvider {
 
     @Override
     public void generateTranslations(HolderLookup.Provider registryLookup, TranslationBuilder translationBuilder) {
-        // EXAMPLE: Wild Carrot (Single)
-        //  translationBuilder.add(ObjectRegistry.WILD_CARROTS.get().asItem(), "Wild Carrots");
-        // Generate translations for all wild crops
-        translationBuilder.add(ObjectRegistry.AMETHYST_ARROW_ITEM.get().asItem(), "Amethyst Arrow");
+        // REMOVED: Amethyst arrow is now part of the component system
+        // translationBuilder.add(ObjectRegistry.AMETHYST_ARROW_ITEM.get().asItem(), "Amethyst Arrow");
+
+        // Add translations for mod items
+        translationBuilder.add(ObjectRegistry.COMPONENT_ARROW_ITEM.get().asItem(), "Component Arrow");
+        translationBuilder.add(ObjectRegistry.QUIVER_ITEM.get().asItem(), "Quiver");
+        translationBuilder.add(ObjectRegistry.IRON_BOW_ITEM.get().asItem(), "Iron Bow");
+        translationBuilder.add(ObjectRegistry.COMPOUND_BOW_ITEM.get().asItem(), "Compound Bow");
+        translationBuilder.add(ObjectRegistry.IRON_CROSSBOW_ITEM.get().asItem(), "Iron Crossbow");
+        translationBuilder.add(ObjectRegistry.REPEATER_CROSSBOW_ITEM.get().asItem(), "Repeater Crossbow");
 //        for (var crop : ObjectRegistry.WILD_CROPS) {
 //            String path = crop.getId().getPath();
 //            String displayName = Arrays.stream(path.split("_"))

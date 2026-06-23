@@ -18,9 +18,12 @@ public  class ModModelProvider extends FabricModelProvider {
 
     @Override
     public void generateItemModels(ItemModelGenerators gen) {
-        gen.generateFlatItem(ObjectRegistry.AMETHYST_ARROW_ITEM.get().asItem(), ModelTemplates.FLAT_ITEM);
+        // REMOVED: Amethyst arrow is now part of the component system
+        // gen.generateFlatItem(ObjectRegistry.AMETHYST_ARROW_ITEM.get().asItem(), ModelTemplates.FLAT_ITEM);
+
         // The component-arrow model set is already checked into generated/resources.
-        // Keep datagen minimal on 1.21.1 until the custom model generation path is ported.
+        // Keep datagen minimal until the custom model generation path is ported.
+        gen.generateFlatItem(ObjectRegistry.QUIVER_ITEM.get().asItem(), ModelTemplates.FLAT_ITEM);
     }
 }
 

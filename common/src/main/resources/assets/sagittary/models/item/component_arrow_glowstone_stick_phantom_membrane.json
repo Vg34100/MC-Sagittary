@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "sagittary:item/glowstone_tip",
+    "layer1": "sagittary:item/stick_shaft",
+    "layer2": "sagittary:item/phantom_membrane_fletching"
+  }
+}

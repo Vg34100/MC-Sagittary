@@ -43,7 +43,8 @@ public final class SagittaryNeoForge {
     
     private void registerEntityRenderers(EntityRenderersEvent.RegisterRenderers event) {
         // Register entity renderers at the proper time for NeoForge
-        event.registerEntityRenderer(ObjectRegistry.AMETHYST_ARROW_ENTITY.get(), SagittaryClient.AmethystArrowRenderer::new);
+        // REMOVED: Amethyst arrow is now part of the component system
+        // event.registerEntityRenderer(ObjectRegistry.AMETHYST_ARROW_ENTITY.get(), SagittaryClient.AmethystArrowRenderer::new);
         event.registerEntityRenderer(ObjectRegistry.COMPONENT_ARROW_ENTITY.get(), SagittaryClient.ComponentArrowRenderer::new);
     }
 }
