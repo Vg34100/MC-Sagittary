@@ -1,6 +1,8 @@
 package net.vg.sagittary.component.effects;
 
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.EntityHitResult;
@@ -37,6 +39,10 @@ public class BoneShaftEffect implements ComponentEffect {
             if (isUndead(target)) {
                 // Deal bonus smite damage
                 target.hurt(arrow.damageSources().magic(), SMITE_BONUS_DAMAGE);
+
+                // Play smite sound - distinct sound to confirm undead hit
+                arrow.level().playSound(null, target.blockPosition(), SoundEvents.EXPERIENCE_ORB_PICKUP,
+                        SoundSource.PLAYERS, 0.8f, 1.2f);
 
                 // Holy/smite particles
                 for (int i = 0; i < 15; i++) {

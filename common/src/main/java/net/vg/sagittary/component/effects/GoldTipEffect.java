@@ -1,6 +1,8 @@
 package net.vg.sagittary.component.effects;
 
 import net.minecraft.core.particles.ParticleTypes;
+import net.minecraft.sounds.SoundEvents;
+import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.EntityHitResult;
 import net.vg.sagittary.entity.ComponentArrowEntity;
@@ -20,6 +22,10 @@ public class GoldTipEffect implements ComponentEffect {
                 // Deal additional critical damage (50% of base 2.0 = 1.0 extra)
                 float critDamage = 1.0f;
                 target.hurt(arrow.damageSources().arrow(arrow, arrow.getOwner()), critDamage);
+
+                // Play crit sound - distinct chime to confirm crit
+                arrow.level().playSound(null, target.blockPosition(), SoundEvents.EXPERIENCE_ORB_PICKUP,
+                        SoundSource.PLAYERS, 0.8f, 1.8f);
 
                 // Critical hit particle burst
                 for (int i = 0; i < 15; i++) {
