@@ -81,22 +81,27 @@ public class RepeaterCrossbowItem extends CrossbowItem {
      * Load up to MAGAZINE_SIZE arrows into the crossbow.
      */
     private boolean tryLoadMagazine(LivingEntity shooter, ItemStack crossbow) {
+        if (!(shooter instanceof Player player)) {
+            return false;
+        }
+
         List<ItemStack> projectilesToLoad = new ArrayList<>();
-        boolean hasInfiniteMaterials = shooter instanceof Player player && player.hasInfiniteMaterials();
+        boolean hasInfiniteMaterials = player.hasInfiniteMaterials();
 
         for (int i = 0; i < MAGAZINE_SIZE; i++) {
-            ItemStack projectile = shooter.getProjectile(crossbow);
+            // Check quiver first, then inventory
+            ItemStack projectile = QuiverItem.getArrowFromInventory(player, crossbow);
             if (projectile.isEmpty()) {
                 break;
             }
 
-            // Get one arrow from the stack
+            // Get one arrow
             ItemStack singleArrow = projectile.copyWithCount(1);
             projectilesToLoad.add(singleArrow);
 
             // Consume the arrow (unless in creative)
             if (!hasInfiniteMaterials) {
-                projectile.shrink(1);
+                QuiverItem.consumeArrowFromInventory(player, crossbow);
             }
         }
 
@@ -116,8 +121,8 @@ public class RepeaterCrossbowItem extends CrossbowItem {
             performShooting(level, player, hand, stack, getShootingPower(stack), 1.0F, null);
             return InteractionResult.CONSUME;
         } else {
-            // Check if player has arrows to load
-            if (!player.getProjectile(stack).isEmpty()) {
+            // Check if player has arrows to load (quiver or inventory)
+            if (!QuiverItem.getArrowFromInventory(player, stack).isEmpty()) {
                 loadSoundPlayed = false;
                 player.startUsingItem(hand);
                 return InteractionResult.CONSUME;

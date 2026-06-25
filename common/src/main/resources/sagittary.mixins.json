@@ -4,10 +4,15 @@
   "compatibilityLevel": "JAVA_21",
   "minVersion": "0.8",
   "client": [
-    "client.ItemInHandRendererMixin"
+    "client.ItemInHandRendererMixin",
+    "client.BundleMouseActionsMixin"
   ],
   "mixins": [
-    "FletchingTableBlockMixin"
+    "FletchingTableBlockMixin",
+    "BundleContentsMutableAccessor",
+    "BundleContentsAccessor",
+    "PlayerProjectileMixin",
+    "ProjectileWeaponItemMixin"
   ],
   "injectors": {
     "defaultRequire": 1

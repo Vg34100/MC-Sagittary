@@ -14,13 +14,16 @@ import net.minecraft.world.entity.SlotAccess;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.ClickAction;
 import net.minecraft.world.inventory.Slot;
-import net.minecraft.world.inventory.tooltip.BundleTooltip;
 import net.minecraft.world.inventory.tooltip.TooltipComponent;
+import net.vg.sagittary.client.QuiverTooltip;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.component.BundleContents;
 import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.Level;
+import net.vg.sagittary.mixin.BundleContentsMutableAccessor;
+import org.apache.commons.lang3.math.Fraction;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -31,7 +34,9 @@ import java.util.function.Consumer;
  * Capacity: 256 arrows (4 stacks of 64)
  */
 public class QuiverItem extends Item {
-    private static final int MAX_WEIGHT = 256; // 4 stacks of arrows
+    public static final int MAX_CAPACITY = 256; // 4 stacks of arrows
+    // Weight per arrow - 1/256 so that 256 arrows = weight 1.0 (full) in tooltip display
+    private static final Fraction ARROW_WEIGHT = Fraction.getFraction(1, MAX_CAPACITY);
     public static final int BAR_COLOR = 0x8B4513; // Brown color for quiver
 
     public QuiverItem(Properties properties) {
@@ -50,25 +55,33 @@ public class QuiverItem extends Item {
         }
 
         ItemStack stackInSlot = slot.getItem();
-        BundleContents.Mutable mutable = new BundleContents.Mutable(contents);
 
         if (stackInSlot.isEmpty()) {
             // Remove item from quiver and place in slot
+            BundleContents.Mutable mutable = new BundleContents.Mutable(contents);
             ItemStack removed = mutable.removeOne();
             if (removed != null) {
                 ItemStack result = slot.safeInsert(removed);
-                mutable.tryInsert(result);
+                if (!result.isEmpty()) {
+                    insertArrowDirect(mutable, result);
+                }
+                quiver.set(DataComponents.BUNDLE_CONTENTS, mutable.toImmutable());
                 this.playRemoveSound(player);
             }
         } else if (isValidArrow(stackInSlot)) {
-            // Add arrow to quiver
-            int inserted = mutable.tryTransfer(slot, player);
-            if (inserted > 0) {
+            // Add arrow to quiver using direct insertion (bypasses weight limit)
+            int currentCount = getTotalArrowCount(contents);
+            int spaceLeft = MAX_CAPACITY - currentCount;
+            int toInsert = Math.min(stackInSlot.getCount(), spaceLeft);
+
+            if (toInsert > 0) {
+                ItemStack toAdd = stackInSlot.split(toInsert);
+                BundleContents newContents = addArrowsToContents(contents, toAdd);
+                quiver.set(DataComponents.BUNDLE_CONTENTS, newContents);
                 this.playInsertSound(player);
             }
         }
 
-        quiver.set(DataComponents.BUNDLE_CONTENTS, mutable.toImmutable());
         return true;
     }
 
@@ -83,25 +96,142 @@ public class QuiverItem extends Item {
             return false;
         }
 
-        BundleContents.Mutable mutable = new BundleContents.Mutable(contents);
-
         if (other.isEmpty()) {
             // Remove item from quiver
+            BundleContents.Mutable mutable = new BundleContents.Mutable(contents);
             ItemStack removed = mutable.removeOne();
             if (removed != null) {
                 this.playRemoveSound(player);
                 access.set(removed);
+                quiver.set(DataComponents.BUNDLE_CONTENTS, mutable.toImmutable());
             }
         } else if (isValidArrow(other)) {
-            // Add arrow to quiver
-            int inserted = mutable.tryInsert(other);
-            if (inserted > 0) {
+            // Add arrow to quiver using direct insertion (bypasses weight limit)
+            int currentCount = getTotalArrowCount(contents);
+            int spaceLeft = MAX_CAPACITY - currentCount;
+            int toInsert = Math.min(other.getCount(), spaceLeft);
+
+            if (toInsert > 0) {
+                ItemStack toAdd = other.copyWithCount(toInsert);
+                other.shrink(toInsert);
+                BundleContents newContents = addArrowsToContents(contents, toAdd);
+                quiver.set(DataComponents.BUNDLE_CONTENTS, newContents);
                 this.playInsertSound(player);
             }
         }
 
-        quiver.set(DataComponents.BUNDLE_CONTENTS, mutable.toImmutable());
         return true;
+    }
+
+    /**
+     * Add arrows to contents, bypassing weight limits. Merges with existing stacks of same type,
+     * respecting max stack size (64). Creates new stacks if needed.
+     */
+    private static BundleContents addArrowsToContents(BundleContents contents, ItemStack toAdd) {
+        List<ItemStack> items = new ArrayList<>();
+        contents.itemCopyStream().forEach(items::add);
+
+        int remaining = toAdd.getCount();
+        int maxStackSize = toAdd.getMaxStackSize();
+
+        // Try to merge with existing stacks of same type
+        for (ItemStack existing : items) {
+            if (remaining <= 0) break;
+
+            if (ItemStack.isSameItemSameComponents(existing, toAdd)) {
+                int canAdd = maxStackSize - existing.getCount();
+                if (canAdd > 0) {
+                    int toMerge = Math.min(canAdd, remaining);
+                    existing.grow(toMerge);
+                    remaining -= toMerge;
+                }
+            }
+        }
+
+        // Add remaining as new stacks
+        while (remaining > 0) {
+            int stackSize = Math.min(remaining, maxStackSize);
+            items.add(0, toAdd.copyWithCount(stackSize)); // Add to front
+            remaining -= stackSize;
+        }
+
+        // Rebuild contents
+        return buildContentsFromList(items);
+    }
+
+    /**
+     * Build BundleContents from a list of items, bypassing weight limits.
+     */
+    private static BundleContents buildContentsFromList(List<ItemStack> items) {
+        return buildContentsFromList(items, -1);
+    }
+
+    /**
+     * Build BundleContents from a list of items, bypassing weight limits.
+     * Preserves selectedIndex if valid.
+     */
+    private static BundleContents buildContentsFromList(List<ItemStack> items, int selectedIndex) {
+        BundleContents.Mutable mutable = new BundleContents.Mutable(BundleContents.EMPTY);
+        BundleContentsMutableAccessor accessor = (BundleContentsMutableAccessor) mutable;
+
+        // Directly add items to the internal list
+        List<ItemStack> internalItems = accessor.sagittary$getItems();
+        Fraction totalWeight = Fraction.ZERO;
+
+        for (int i = items.size() - 1; i >= 0; i--) {
+            ItemStack item = items.get(i);
+            if (!item.isEmpty()) {
+                internalItems.add(0, item.copy());
+                totalWeight = totalWeight.add(ARROW_WEIGHT.multiplyBy(Fraction.getFraction(item.getCount(), 1)));
+            }
+        }
+
+        accessor.sagittary$setWeight(totalWeight);
+
+        // Set selected item index if valid
+        if (selectedIndex >= 0 && selectedIndex < internalItems.size()) {
+            accessor.sagittary$setSelectedItem(selectedIndex);
+        }
+
+        return mutable.toImmutable();
+    }
+
+    /**
+     * Insert arrow directly into mutable, bypassing weight limits.
+     * Respects max stack size (64), creates new stacks if needed.
+     */
+    private static void insertArrowDirect(BundleContents.Mutable mutable, ItemStack toAdd) {
+        BundleContentsMutableAccessor accessor = (BundleContentsMutableAccessor) mutable;
+        List<ItemStack> items = accessor.sagittary$getItems();
+
+        int remaining = toAdd.getCount();
+        int maxStackSize = toAdd.getMaxStackSize();
+
+        // Try to merge with existing stacks
+        for (ItemStack existing : items) {
+            if (remaining <= 0) break;
+
+            if (ItemStack.isSameItemSameComponents(existing, toAdd)) {
+                int canAdd = maxStackSize - existing.getCount();
+                if (canAdd > 0) {
+                    int toMerge = Math.min(canAdd, remaining);
+                    existing.grow(toMerge);
+                    remaining -= toMerge;
+                }
+            }
+        }
+
+        // Add remaining as new stacks
+        while (remaining > 0) {
+            int stackSize = Math.min(remaining, maxStackSize);
+            items.add(0, toAdd.copyWithCount(stackSize));
+            remaining -= stackSize;
+        }
+
+        // Update weight
+        Fraction currentWeight = accessor.sagittary$getWeight();
+        Fraction addedWeight = ARROW_WEIGHT.multiplyBy(Fraction.getFraction(toAdd.getCount(), 1));
+        accessor.sagittary$setWeight(currentWeight.add(addedWeight));
     }
 
     @Override
@@ -158,7 +288,8 @@ public class QuiverItem extends Item {
     }
 
     /**
-     * Get the first arrow from a quiver without removing it (for checking).
+     * Get the selected arrow from a quiver without removing it (for checking).
+     * Uses the bundle's selected item if set, otherwise returns first item.
      */
     public static ItemStack peekArrow(ItemStack quiver) {
         if (!(quiver.getItem() instanceof QuiverItem)) {
@@ -168,20 +299,30 @@ public class QuiverItem extends Item {
         if (contents == null || contents.isEmpty()) {
             return ItemStack.EMPTY;
         }
-        // Use Mutable to peek - remove, copy, then put back
-        BundleContents.Mutable mutable = new BundleContents.Mutable(contents);
-        ItemStack removed = mutable.removeOne();
-        if (removed != null && !removed.isEmpty()) {
-            ItemStack copy = removed.copy();
-            mutable.tryInsert(removed); // Put it back
-            quiver.set(DataComponents.BUNDLE_CONTENTS, mutable.toImmutable());
-            return copy;
+
+        // Check if there's a selected item
+        var selectedItem = contents.getSelectedItem();
+        if (selectedItem != null) {
+            return selectedItem.create();
         }
-        return ItemStack.EMPTY;
+
+        // Fallback to first item
+        return contents.itemCopyStream().findFirst().orElse(ItemStack.EMPTY);
     }
 
     /**
-     * Remove and return one arrow from a quiver.
+     * Count total arrows across all stacks in the quiver.
+     */
+    public static int getTotalArrowCount(BundleContents contents) {
+        if (contents == null || contents.isEmpty()) return 0;
+        return contents.itemCopyStream()
+                .mapToInt(ItemStack::getCount)
+                .sum();
+    }
+
+    /**
+     * Remove and return one arrow from a quiver (shrinks selected stack by 1).
+     * Uses the bundle's selected item if set, otherwise uses first item.
      */
     public static ItemStack removeOneArrow(ItemStack quiver) {
         if (!(quiver.getItem() instanceof QuiverItem)) {
@@ -191,10 +332,39 @@ public class QuiverItem extends Item {
         if (contents == null || contents.isEmpty()) {
             return ItemStack.EMPTY;
         }
-        BundleContents.Mutable mutable = new BundleContents.Mutable(contents);
-        ItemStack removed = mutable.removeOne();
-        quiver.set(DataComponents.BUNDLE_CONTENTS, mutable.toImmutable());
-        return removed != null ? removed : ItemStack.EMPTY;
+
+        // Get the items as a mutable list
+        List<ItemStack> items = new ArrayList<>();
+        contents.itemCopyStream().forEach(items::add);
+
+        if (items.isEmpty()) {
+            return ItemStack.EMPTY;
+        }
+
+        // Determine which index to remove from (selected or first)
+        int selectedIndex = contents.getSelectedItemIndex();
+        int removeIndex = (selectedIndex >= 0 && selectedIndex < items.size()) ? selectedIndex : 0;
+
+        // Get the stack and create a copy of 1 arrow
+        ItemStack targetStack = items.get(removeIndex);
+        ItemStack removed = targetStack.copyWithCount(1);
+
+        // Shrink the stack or remove it entirely
+        int newSelectedIndex = selectedIndex;
+        if (targetStack.getCount() > 1) {
+            targetStack.shrink(1);
+        } else {
+            items.remove(removeIndex);
+            // Adjust selected index if needed
+            if (selectedIndex >= items.size()) {
+                newSelectedIndex = items.isEmpty() ? -1 : items.size() - 1;
+            }
+        }
+
+        // Rebuild the contents using direct method (preserves order and selection)
+        quiver.set(DataComponents.BUNDLE_CONTENTS, buildContentsFromList(items, newSelectedIndex));
+
+        return removed;
     }
 
     /**
@@ -259,7 +429,8 @@ public class QuiverItem extends Item {
     public int getBarWidth(ItemStack stack) {
         BundleContents contents = stack.get(DataComponents.BUNDLE_CONTENTS);
         if (contents == null) return 0;
-        return Mth.clamp(Math.round(13.0F * (float) contents.size() / MAX_WEIGHT), 0, 13);
+        int totalArrows = getTotalArrowCount(contents);
+        return Mth.clamp(Math.round(13.0F * (float) totalArrows / MAX_CAPACITY), 0, 13);
     }
 
     @Override
@@ -271,17 +442,65 @@ public class QuiverItem extends Item {
     public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> consumer, TooltipFlag flag) {
         super.appendHoverText(stack, context, display, consumer, flag);
         BundleContents contents = stack.get(DataComponents.BUNDLE_CONTENTS);
-        if (contents != null) {
-            int count = contents.size();
-            consumer.accept(Component.translatable("item.sagittary.quiver.arrows", count, MAX_WEIGHT)
-                    .withStyle(ChatFormatting.GRAY));
+        if (contents != null && !contents.isEmpty()) {
+            // Show selected/equipped arrow
+            ItemStack selectedArrow = peekArrow(stack);
+            if (!selectedArrow.isEmpty()) {
+                consumer.accept(Component.literal("Equipped: ")
+                        .withStyle(ChatFormatting.GRAY)
+                        .append(selectedArrow.getHoverName().copy().withStyle(ChatFormatting.WHITE)));
+            }
+
+            // Show capacity
+            int totalArrows = getTotalArrowCount(contents);
+            consumer.accept(Component.literal("Arrows: " + totalArrows + "/" + MAX_CAPACITY)
+                    .withStyle(ChatFormatting.DARK_GRAY));
         }
+    }
+
+    /**
+     * Cycle to the next arrow type in the quiver.
+     * Call this when the player scrolls while holding the quiver.
+     */
+    public static void cycleSelectedArrow(ItemStack quiver, boolean forward) {
+        if (!(quiver.getItem() instanceof QuiverItem)) {
+            return;
+        }
+        BundleContents contents = quiver.get(DataComponents.BUNDLE_CONTENTS);
+        if (contents == null || contents.isEmpty()) {
+            return;
+        }
+
+        // Get items as a list
+        List<ItemStack> items = new ArrayList<>();
+        contents.itemCopyStream().forEach(items::add);
+
+        if (items.size() <= 1) {
+            return; // Nothing to cycle
+        }
+
+        // Rotate the list (move first to last, or last to first)
+        if (forward) {
+            ItemStack first = items.remove(0);
+            items.add(first);
+        } else {
+            ItemStack last = items.remove(items.size() - 1);
+            items.add(0, last);
+        }
+
+        // Rebuild the contents using direct method (preserves order, no weight limit)
+        quiver.set(DataComponents.BUNDLE_CONTENTS, buildContentsFromList(items));
     }
 
     @Override
     public Optional<TooltipComponent> getTooltipImage(ItemStack stack) {
         BundleContents contents = stack.get(DataComponents.BUNDLE_CONTENTS);
-        return contents != null && !contents.isEmpty() ? Optional.of(new BundleTooltip(contents)) : Optional.empty();
+        if (contents == null || contents.isEmpty()) {
+            return Optional.empty();
+        }
+
+        // Use custom QuiverTooltip with correct capacity (256)
+        return Optional.of(QuiverTooltip.fromContents(contents, MAX_CAPACITY));
     }
 
     private void playRemoveSound(Entity entity) {

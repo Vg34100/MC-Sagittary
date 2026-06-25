@@ -5,6 +5,7 @@ import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.InteractionHand;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
@@ -26,6 +27,18 @@ public class CompoundBowItem extends BowItem {
 
     public CompoundBowItem(Properties properties) {
         super(properties);
+    }
+
+    @Override
+    public InteractionResult use(Level level, Player player, InteractionHand hand) {
+        ItemStack stack = player.getItemInHand(hand);
+        // Check for arrows in quiver OR inventory
+        ItemStack arrowStack = QuiverItem.getArrowFromInventory(player, stack);
+        if (!arrowStack.isEmpty()) {
+            player.startUsingItem(hand);
+            return InteractionResult.CONSUME;
+        }
+        return InteractionResult.FAIL;
     }
 
     @Override
@@ -103,9 +116,12 @@ public class CompoundBowItem extends BowItem {
             arrow.setCritArrow(true);
         }
 
-        if (hasInfinity || angleOffset != 0) {
-            // Side arrows and infinity arrows can't be picked up
+        // All arrows can be picked up (compound bow consumes 3 arrows)
+        // Only infinity arrows can't be picked up
+        if (hasInfinity) {
             arrow.pickup = AbstractArrow.Pickup.CREATIVE_ONLY;
+        } else {
+            arrow.pickup = AbstractArrow.Pickup.ALLOWED;
         }
 
         level.addFreshEntity(arrow);

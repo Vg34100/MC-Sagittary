@@ -1,6 +1,7 @@
 package net.vg.sagittary.client;
 
 import dev.architectury.registry.client.level.entity.EntityRendererRegistry;
+import dev.architectury.registry.client.gui.ClientTooltipComponentRegistry;
 import dev.architectury.registry.client.gui.MenuScreenRegistry;
 import net.minecraft.client.renderer.entity.ArrowRenderer;
 import net.minecraft.client.renderer.entity.EntityRendererProvider;
@@ -15,7 +16,11 @@ public class SagittaryClient {
         initEntityRenderers();
         initScreens();
         initItemRenderers();
+        initTooltips();
+    }
 
+    public static void initTooltips() {
+        ClientTooltipComponentRegistry.register(QuiverTooltip.class, QuiverTooltipRenderer::new);
     }
     
     public static void initItemRenderers() {
