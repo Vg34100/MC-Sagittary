@@ -13,8 +13,8 @@ import net.minecraft.world.item.ArrowItem;
 import net.minecraft.world.item.BowItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.Vec3;
 
 /**
  * Compound Bow - Shoots 3 arrows in a spread pattern.
@@ -46,15 +46,18 @@ public class CompoundBowItem extends BowItem {
             return false;
         }
 
-        boolean hasInfinity = player.hasInfiniteMaterials();
-        int arrowsToShoot = Math.min(3, hasInfinity ? 3 : arrowStack.getCount());
-
-        if (arrowsToShoot <= 0) {
-            return false;
-        }
-
         if (level instanceof ServerLevel serverLevel) {
             ArrowItem arrowItem = arrowStack.getItem() instanceof ArrowItem ai ? ai : (ArrowItem) Items.ARROW;
+            ItemStack singleArrow = arrowStack.copyWithCount(1);
+
+            // Check infinity enchantment - processAmmoUse returns 0 if infinity applies
+            int ammoToConsume = EnchantmentHelper.processAmmoUse(serverLevel, stack, singleArrow, 1);
+            boolean hasInfinity = player.hasInfiniteMaterials() || ammoToConsume == 0;
+
+            int arrowsToShoot = Math.min(3, hasInfinity ? 3 : arrowStack.getCount());
+            if (arrowsToShoot <= 0) {
+                return false;
+            }
 
             // Shoot center arrow
             shootArrow(serverLevel, player, stack, arrowStack, arrowItem, power, 0, hasInfinity);
@@ -67,7 +70,7 @@ public class CompoundBowItem extends BowItem {
                 shootArrow(serverLevel, player, stack, arrowStack, arrowItem, power * 0.9f, SPREAD_ANGLE, hasInfinity);
             }
 
-            // Consume arrows from quiver or inventory
+            // Consume arrows from quiver or inventory (only 1 with infinity-like behavior for compound bow)
             if (!hasInfinity) {
                 for (int i = 0; i < arrowsToShoot; i++) {
                     QuiverItem.consumeArrowFromInventory(player, stack);

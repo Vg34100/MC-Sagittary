@@ -13,6 +13,7 @@ import net.minecraft.world.item.ArrowItem;
 import net.minecraft.world.item.BowItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
 
 /**
@@ -45,8 +46,6 @@ public class IronBowItem extends BowItem {
             return false;
         }
 
-        boolean hasInfinity = player.hasInfiniteMaterials();
-
         if (level instanceof ServerLevel serverLevel) {
             ArrowItem arrowItem = arrowStack.getItem() instanceof ArrowItem ai ? ai : (ArrowItem) Items.ARROW;
             // Pass single-item copy to prevent pickup duplication
@@ -59,6 +58,10 @@ public class IronBowItem extends BowItem {
             if (power == 1.0F) {
                 arrow.setCritArrow(true);
             }
+
+            // Check infinity enchantment - processAmmoUse returns 0 if infinity applies
+            int ammoToConsume = EnchantmentHelper.processAmmoUse(serverLevel, stack, singleArrow, 1);
+            boolean hasInfinity = player.hasInfiniteMaterials() || ammoToConsume == 0;
 
             // Consume arrow from quiver or inventory
             if (!hasInfinity) {

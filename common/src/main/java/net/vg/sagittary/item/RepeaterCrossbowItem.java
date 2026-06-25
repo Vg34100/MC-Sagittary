@@ -10,12 +10,15 @@ import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.Projectile;
+import net.minecraft.world.entity.projectile.arrow.AbstractArrow;
 import net.minecraft.world.item.CrossbowItem;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.item.component.ChargedProjectiles;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
 import net.minecraft.world.level.Level;
 import net.minecraft.core.component.DataComponents;
+import org.joml.Vector3f;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -148,8 +151,45 @@ public class RepeaterCrossbowItem extends CrossbowItem {
             return;
         }
 
-        // Take the first projectile and shoot it
+        // Get projectile count from multishot enchantment (1 base + enchantment bonus)
+        int projectileCount = EnchantmentHelper.processProjectileCount(serverLevel, crossbow, shooter, 1);
+        // Get spread angle from multishot enchantment
+        float spreadAngle = EnchantmentHelper.processProjectileSpread(serverLevel, crossbow, shooter, 0.0F);
+
+        boolean isPlayer = shooter instanceof Player;
+        int shotsFired = 0;
+
+        // Take only ONE projectile from the magazine - multishot creates copies
         ItemStack projectileToShoot = projectiles.remove(0);
+
+        for (int i = 0; i < projectileCount; i++) {
+            // Calculate angle offset for spread
+            float angleOffset = 0.0F;
+            if (projectileCount > 1 && spreadAngle > 0) {
+                // Distribute shots evenly across the spread angle
+                angleOffset = spreadAngle * ((float) i / (projectileCount - 1) - 0.5F);
+            }
+
+            // Create and shoot the projectile
+            // Only first projectile (center) can be picked up, others are copies from multishot
+            boolean isCopy = !isPlayer || i > 0;
+            Projectile projectile = this.createProjectile(serverLevel, shooter, crossbow, projectileToShoot.copy(), isCopy);
+
+            if (projectile != null) {
+                // Explicitly set pickup status - only center arrow (i == 0) for players can be picked up
+                if (projectile instanceof AbstractArrow arrow) {
+                    if (isCopy) {
+                        arrow.pickup = AbstractArrow.Pickup.CREATIVE_ONLY;
+                    } else {
+                        arrow.pickup = AbstractArrow.Pickup.ALLOWED;
+                    }
+                }
+
+                this.shootProjectile(shooter, projectile, i, velocity, inaccuracy, angleOffset, target);
+                serverLevel.addFreshEntity(projectile);
+                shotsFired++;
+            }
+        }
 
         // Update the crossbow with remaining projectiles
         if (projectiles.isEmpty()) {
@@ -158,18 +198,11 @@ public class RepeaterCrossbowItem extends CrossbowItem {
             crossbow.set(DataComponents.CHARGED_PROJECTILES, ChargedProjectiles.ofNonEmpty(projectiles));
         }
 
-        // Create and shoot the projectile
-        boolean isPlayer = shooter instanceof Player;
-        Projectile projectile = this.createProjectile(serverLevel, shooter, crossbow, projectileToShoot, !isPlayer);
-
-        if (projectile != null) {
-            this.shootProjectile(shooter, projectile, 0, velocity, inaccuracy, 0, target);
-            serverLevel.addFreshEntity(projectile);
-        }
-
         // Play sound
-        level.playSound(null, shooter.getX(), shooter.getY(), shooter.getZ(),
-                SoundEvents.CROSSBOW_SHOOT, SoundSource.PLAYERS, 1.0F, 1.0F);
+        if (shotsFired > 0) {
+            level.playSound(null, shooter.getX(), shooter.getY(), shooter.getZ(),
+                    SoundEvents.CROSSBOW_SHOOT, SoundSource.PLAYERS, 1.0F, 1.0F);
+        }
 
         // Stats and advancement
         if (shooter instanceof ServerPlayer serverPlayer) {
