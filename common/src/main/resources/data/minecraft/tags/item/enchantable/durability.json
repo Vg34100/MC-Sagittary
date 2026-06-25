@@ -1,0 +1,10 @@
+{
+  "replace": false,
+  "values": [
+    "sagittary:iron_bow",
+    "sagittary:compound_bow",
+    "sagittary:iron_crossbow",
+    "sagittary:repeater_crossbow",
+    "sagittary:quiver"
+  ]
+}
