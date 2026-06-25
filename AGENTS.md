@@ -258,13 +258,20 @@ Raw Gradle output is extremely verbose (100-200+ lines per failed build) and was
 
 ```bash
 # On Windows (cmd.exe) - PREFERRED for this repo
-cmd.exe /c "cd /d A:\Projects\The Experiment Lab\Minecraft\sagittary && python build-smart.py"
+cmd.exe /c "python build-smart.py"
 
-# Or from the project directory
-python build-smart.py
-python build-smart.py runClient
-python build-smart.py clean
+# Available commands:
+python build-smart.py              # compile only (default, fast)
+python build-smart.py compile      # same as above
+python build-smart.py compile:fabric    # compile common + fabric only
+python build-smart.py compile:neoforge  # compile common + neoforge only
+python build-smart.py build        # full build with jars
+python build-smart.py shadowJar    # distribution jars
+python build-smart.py release      # alias for shadowJar
+python build-smart.py clean        # clean build dirs
 ```
+
+**Default is `compile`** - fast compileJava only, no jar packaging. Use this during development.
 
 **Example output comparison:**
 
@@ -275,24 +282,23 @@ A:\Projects\...\BoneShaftEffect.java:26: error: cannot find symbol
                                  ^
   symbol:   class Zombie
   location: class BoneShaftEffect
-A:\Projects\...\BoneShaftEffect.java:26: error: cannot find symbol
-        return entity instanceof Zombie || entity instanceof Skeleton ||
-                                                             ^
-  symbol:   class Skeleton
-... (100 more lines of the same error in different forms)
+... (100 more lines of repeated errors and gradle boilerplate)
 ```
 
-Smart Build (GOOD - 10 lines):
+Smart Build (GOOD - ~10 lines):
 ```
-==================================================
-BUILD FAILED - 4 error(s)
-==================================================
+Running: gradlew.bat :common:compileJava :fabric:compileJava :neoforge:compileJava --no-daemon
+------------------------------------------------------------
+============================================================
+BUILD FAILED
+============================================================
 
-Missing symbols:
-  BoneShaftEffect.java:26 - cannot find: Zombie, Skeleton, Husk
-
---------------------------------------------------
-Fix these 4 error(s) and rebuild
+Errors found:
+------------------------------------------------------------
+BoneShaftEffect.java:26: error: cannot find symbol
+    symbol:   class Zombie
+------------------------------------------------------------
+Fix errors and rebuild
 ```
 
 ### Windows vs WSL
@@ -386,31 +392,25 @@ Do not dump long terminal logs into the response.
 
 These notes are specific to this repo and can be replaced in a new project.
 
-### Current known-good mirror compile loop for this repo
+### Sagittary-specific build workflow
+
+For this repo, use `build-smart.py` which handles Windows paths correctly:
 
 ```bash
-mirror=/tmp/spelunkery-wsl
-rm -rf "$mirror"
-mkdir -p "$mirror"
-rsync -a --delete \
-  --exclude '.git' \
-  --exclude '.gradle' \
-  --exclude 'build' \
-  --exclude 'fabric/run' \
-  --exclude 'neoforge/run' \
-  ./ "$mirror"/
-cd "$mirror"
-env GRADLE_USER_HOME=/tmp/spelunkery-gradle-home \
-    SPELUNKERY_BUILD_ROOT=/tmp/spelunkery-build \
-    ./gradlew --project-cache-dir /tmp/spelunkery-project-cache \
-    --rerun-tasks \
-    :common:processResources \
-    :common:compileJava \
-    :fabric:compileJava \
-    :neoforge:compileJava
+# Development compile check (fast)
+cmd.exe /c "python build-smart.py"
+
+# Distribution build
+cmd.exe /c "python build-smart.py shadowJar"
 ```
+
+Output jars for distribution:
+- `fabric/build/libs/sagittary-fabric-X.X.X.jar`
+- `neoforge/build/libs/sagittary-neoforge-X.X.X.jar`
+
+Note: The `-raw.jar` files are intermediate builds missing the common module - do not distribute those.
 
 ### Current repo-specific caution
 
-- This repo frequently has user-owned texture edits in `common/src/main/resources/assets/spelunkery/textures/`
+- This repo frequently has user-owned texture edits in `common/src/main/resources/assets/sagittary/textures/`
 - Do not stage or revert those files unless the user explicitly asks for that
