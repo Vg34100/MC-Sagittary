@@ -1,5 +1,5 @@
 {
-  "parent": "minecraft:item/generated",
+  "parent": "minecraft:item/crossbow",
   "textures": {
     "layer0": "sagittary:item/iron_crossbow_standby"
   }
