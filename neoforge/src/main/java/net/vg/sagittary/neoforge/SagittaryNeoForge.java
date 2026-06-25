@@ -6,9 +6,12 @@ import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
 import net.neoforged.fml.event.lifecycle.FMLCommonSetupEvent;
 import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
+import net.neoforged.neoforge.client.event.RegisterClientTooltipComponentFactoriesEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.vg.sagittary.Sagittary;
 import net.neoforged.fml.common.Mod;
+import net.vg.sagittary.client.QuiverTooltip;
+import net.vg.sagittary.client.QuiverTooltipRenderer;
 import net.vg.sagittary.client.SagittaryClient;
 import net.vg.sagittary.registry.ObjectRegistry;
 import net.vg.sagittary.screen.FletchingTableScreen;
@@ -25,6 +28,7 @@ public final class SagittaryNeoForge {
             modEventBus.addListener(this::clientSetup);
             modEventBus.addListener(this::registerEntityRenderers);
             modEventBus.addListener(this::registerMenuScreens);
+            modEventBus.addListener(this::registerTooltipComponents);
         }
     }
     
@@ -46,5 +50,9 @@ public final class SagittaryNeoForge {
         // REMOVED: Amethyst arrow is now part of the component system
         // event.registerEntityRenderer(ObjectRegistry.AMETHYST_ARROW_ENTITY.get(), SagittaryClient.AmethystArrowRenderer::new);
         event.registerEntityRenderer(ObjectRegistry.COMPONENT_ARROW_ENTITY.get(), SagittaryClient.ComponentArrowRenderer::new);
+    }
+
+    private void registerTooltipComponents(RegisterClientTooltipComponentFactoriesEvent event) {
+        event.register(QuiverTooltip.class, QuiverTooltipRenderer::new);
     }
 }

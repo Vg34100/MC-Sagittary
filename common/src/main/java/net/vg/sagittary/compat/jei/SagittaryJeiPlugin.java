@@ -3,10 +3,12 @@ package net.vg.sagittary.compat.jei;
 import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.constants.VanillaTypes;
-import mezz.jei.api.registration.IRecipeRegistration;
+import mezz.jei.api.helpers.IGuiHelper;
+import mezz.jei.api.registration.*;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.vg.sagittary.Sagittary;
 import net.vg.sagittary.component.ArrowComponent;
 import net.vg.sagittary.item.ComponentArrowItem;
@@ -17,11 +19,15 @@ import java.util.List;
 
 /**
  * JEI plugin for Sagittary mod.
- * Provides information about arrow components and their effects.
+ * Provides:
+ * - Arrow component info category (accessible via fletching table or component items)
+ * - Fletching table recipe category (tip + shaft + fletching = arrow)
+ * - Item info for special items
  */
 @JeiPlugin
 public class SagittaryJeiPlugin implements IModPlugin {
     private static final Identifier PLUGIN_ID = Identifier.fromNamespaceAndPath(Sagittary.MOD_ID, "jei_plugin");
+    private static final org.slf4j.Logger LOGGER = org.slf4j.LoggerFactory.getLogger("SagittaryJEI");
 
     @Override
     public Identifier getPluginUid() {
@@ -29,34 +35,86 @@ public class SagittaryJeiPlugin implements IModPlugin {
     }
 
     @Override
-    public void registerRecipes(IRecipeRegistration registration) {
-        // Add information pages for all component arrow variants
-        addComponentArrowInfo(registration);
+    public void registerCategories(IRecipeCategoryRegistration registration) {
+        LOGGER.info("Sagittary JEI: Registering categories");
+        IGuiHelper guiHelper = registration.getJeiHelpers().getGuiHelper();
 
-        // Add information for special items
-        addQuiverInfo(registration);
-        addBowInfo(registration);
+        // Register arrow component info category
+        registration.addRecipeCategories(new ArrowComponentCategory(guiHelper));
+        LOGGER.info("Sagittary JEI: Registered ArrowComponentCategory");
+
+        // Register fletching table recipe category
+        registration.addRecipeCategories(new FletchingTableCategory(guiHelper));
+        LOGGER.info("Sagittary JEI: Registered FletchingTableCategory");
     }
 
-    private void addComponentArrowInfo(IRecipeRegistration registration) {
-        // Create info entries for each tip type
+    @Override
+    public void registerRecipes(IRecipeRegistration registration) {
+        LOGGER.info("Sagittary JEI: Registering recipes");
+
+        // Register arrow component recipes (info entries)
+        List<ArrowComponentRecipe> componentRecipes = new ArrayList<>();
+        for (ArrowComponent component : ArrowComponent.values()) {
+            componentRecipes.add(new ArrowComponentRecipe(component));
+        }
+        registration.addRecipes(ArrowComponentCategory.TYPE, componentRecipes);
+        LOGGER.info("Sagittary JEI: Added {} arrow component recipes", componentRecipes.size());
+
+        // Register fletching table recipes (all valid combinations)
+        List<FletchingTableRecipe> fletchingRecipes = new ArrayList<>();
         for (ArrowComponent tip : ArrowComponent.values()) {
             if (tip.getType() != ArrowComponent.ComponentType.TIP) continue;
-
-            ItemStack arrow = ComponentArrowItem.createComponentArrow(
-                    tip,
-                    ArrowComponent.STICK_SHAFT,
-                    ArrowComponent.FEATHER_FLETCHING);
-
-            List<Component> info = new ArrayList<>();
-            info.add(Component.translatable("jei.sagittary.component_arrow.title"));
-            info.add(Component.empty());
-            info.add(Component.translatable("jei.sagittary.tip." + tip.getMaterialName() + ".desc"));
-            info.add(Component.empty());
-            info.add(Component.translatable("jei.sagittary.damage_modifier", String.format("%.1fx", tip.getDamageModifier())));
-
-            registration.addIngredientInfo(arrow, VanillaTypes.ITEM_STACK, info.toArray(new Component[0]));
+            for (ArrowComponent shaft : ArrowComponent.values()) {
+                if (shaft.getType() != ArrowComponent.ComponentType.SHAFT) continue;
+                for (ArrowComponent fletching : ArrowComponent.values()) {
+                    if (fletching.getType() != ArrowComponent.ComponentType.FLETCHING) continue;
+                    fletchingRecipes.add(new FletchingTableRecipe(tip, shaft, fletching));
+                }
+            }
         }
+        registration.addRecipes(FletchingTableCategory.TYPE, fletchingRecipes);
+
+        // Add info for special items
+        addQuiverInfo(registration);
+        addBowInfo(registration);
+        addComponentInfo(registration);
+    }
+
+    private void addComponentInfo(IRecipeRegistration registration) {
+        // Add ingredient info for each component item
+        for (ArrowComponent component : ArrowComponent.values()) {
+            ItemStack componentItem = new ItemStack(component.getCraftingItem());
+
+            // Build the full component key (e.g., "ender_pearl_tip" instead of just "ender_pearl")
+            String componentKey = component.getMaterialName() + "_" + component.getType().name().toLowerCase();
+
+            // Build description with type and effect
+            Component typeText = Component.translatable("jei.sagittary.type." + component.getType().name().toLowerCase());
+            Component descText = Component.translatable("jei.sagittary.component." + componentKey + ".desc");
+
+            registration.addIngredientInfo(
+                    componentItem,
+                    VanillaTypes.ITEM_STACK,
+                    typeText,
+                    Component.empty(),
+                    descText
+            );
+        }
+    }
+
+    @Override
+    public void registerRecipeCatalysts(IRecipeCatalystRegistration registration) {
+        // Fletching table opens both categories
+        registration.addRecipeCatalyst(new ItemStack(Items.FLETCHING_TABLE), ArrowComponentCategory.TYPE);
+        registration.addRecipeCatalyst(new ItemStack(Items.FLETCHING_TABLE), FletchingTableCategory.TYPE);
+
+        // All component items can access the arrow component category
+        for (ArrowComponent component : ArrowComponent.values()) {
+            registration.addRecipeCatalyst(new ItemStack(component.getCraftingItem()), ArrowComponentCategory.TYPE);
+        }
+
+        // Component arrow can access fletching table category
+        registration.addRecipeCatalyst(new ItemStack(ObjectRegistry.COMPONENT_ARROW_ITEM.get()), FletchingTableCategory.TYPE);
     }
 
     private void addQuiverInfo(IRecipeRegistration registration) {
@@ -85,7 +143,7 @@ public class SagittaryJeiPlugin implements IModPlugin {
                 Component.translatable("jei.sagittary.iron_crossbow.desc")
         );
 
-        // Compound Bow
+        // Compound Bow (structure loot)
         ItemStack compoundBow = new ItemStack(ObjectRegistry.COMPOUND_BOW_ITEM.get());
         registration.addIngredientInfo(
                 compoundBow,
@@ -93,7 +151,7 @@ public class SagittaryJeiPlugin implements IModPlugin {
                 Component.translatable("jei.sagittary.compound_bow.desc")
         );
 
-        // Repeater Crossbow
+        // Repeater Crossbow (structure loot)
         ItemStack repeaterCrossbow = new ItemStack(ObjectRegistry.REPEATER_CROSSBOW_ITEM.get());
         registration.addIngredientInfo(
                 repeaterCrossbow,

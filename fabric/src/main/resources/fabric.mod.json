@@ -22,10 +22,14 @@
     ],
     "fabric-datagen": [
       "net.vg.sagittary.fabric.data.ModDataGenerator"
+    ],
+    "jei_mod_plugin": [
+      "net.vg.sagittary.compat.jei.SagittaryJeiPlugin"
     ]
   },
   "mixins": [
-    "sagittary.mixins.json"
+    "sagittary.mixins.json",
+    "sagittary-fabric.mixins.json"
   ],
   "depends": {
     "fabricloader": ">=0.19.3",
@@ -35,6 +39,8 @@
     "fabric-api": "*"
   },
   "suggests": {
-    "another-mod": "*"
+    "jei": "*"
+  },
+  "breaks": {
   }
 }

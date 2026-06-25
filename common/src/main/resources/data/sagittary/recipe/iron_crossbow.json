@@ -1,0 +1,18 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "IBI",
+    "STS",
+    " I "
+  ],
+  "key": {
+    "I": "minecraft:iron_ingot",
+    "B": "minecraft:crossbow",
+    "S": "minecraft:string",
+    "T": "minecraft:tripwire_hook"
+  },
+  "result": {
+    "id": "sagittary:iron_crossbow",
+    "count": 1
+  }
+}

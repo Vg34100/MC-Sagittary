@@ -1,4 +1,4 @@
-package net.vg.sagittary.mixin.client;
+package net.vg.sagittary.fabric.mixin.client;
 
 import net.minecraft.client.renderer.ItemInHandRenderer;
 import net.minecraft.world.item.BowItem;

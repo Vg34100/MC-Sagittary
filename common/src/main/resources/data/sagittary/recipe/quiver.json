@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "pattern": [
+    "LSL",
+    "L L",
+    "LLL"
+  ],
+  "key": {
+    "L": "minecraft:leather",
+    "S": "minecraft:string"
+  },
+  "result": {
+    "id": "sagittary:quiver",
+    "count": 1
+  }
+}
