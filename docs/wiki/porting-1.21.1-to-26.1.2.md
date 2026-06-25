@@ -93,7 +93,7 @@ Current root shape:
 plugins {
     id 'dev.architectury.loom-no-remap' version '1.17-SNAPSHOT' apply false
     id 'architectury-plugin' version '3.5-SNAPSHOT'
-    id 'com.github.johnrengelman.shadow' version '8.1.1' apply false
+    id 'com.gradleup.shadow' version '9.0.0-beta12' apply false
 }
 
 subprojects {
@@ -263,3 +263,119 @@ This is still the right way to answer:
 ## Repo Note
 
 If IntelliJ run configurations still point at the old repo folder name, regenerate or fix them separately after the toolchain migration. That is a run-config issue, not the main `26.1.2` build migration.
+
+## Shadow Plugin Compatibility
+
+**Critical**: Shadow 8.x is incompatible with Gradle 9.x. You will get errors like:
+
+```
+groovy.lang.MissingPropertyException: No such property: mode for class: org.gradle.api.internal.file.copy.NormalizingCopyActionDecorator$StubbedFileCopyDetails
+```
+
+The fix is to migrate from `com.github.johnrengelman.shadow` to `com.gradleup.shadow`:
+
+In root `build.gradle`:
+```gradle
+id 'com.gradleup.shadow' version '9.0.0-beta12' apply false
+```
+
+In `fabric/build.gradle` and `neoforge/build.gradle`:
+```gradle
+plugins {
+    id 'com.gradleup.shadow'
+}
+```
+
+## Build Output and Distribution
+
+The Architectury + Shadow setup produces two jar types:
+
+| Jar | Contents | Use |
+|-----|----------|-----|
+| `sagittary-fabric-X.X.X-raw.jar` | Platform module only, missing common | Do not distribute |
+| `sagittary-fabric-X.X.X.jar` | Full mod with common bundled | Distribute this one |
+
+To build the distributable jars, run `shadowJar`:
+
+```bash
+gradlew :fabric:shadowJar :neoforge:shadowJar
+```
+
+Or in IntelliJ: `sagittary/Tasks/shadow/shadowJar`
+
+The final jars will be in:
+- `fabric/build/libs/sagittary-fabric-X.X.X.jar`
+- `neoforge/build/libs/sagittary-neoforge-X.X.X.jar`
+
+## JEI Integration (MC 26.1.2 / JEI 29.x)
+
+JEI plugin registration changed. You need both:
+
+1. **Fabric entrypoint** in `fabric.mod.json`:
+```json
+"entrypoints": {
+    "jei_mod_plugin": [
+        "net.vg.sagittary.compat.jei.SagittaryJeiPlugin"
+    ]
+}
+```
+
+2. **Service file** at `common/src/main/resources/META-INF/services/mezz.jei.api.IModPlugin`:
+```
+net.vg.sagittary.compat.jei.SagittaryJeiPlugin
+```
+
+### JEI API Changes
+
+- `IRecipeCategory` now uses `getWidth()` and `getHeight()` instead of `getBackground()`
+- Direct text rendering in categories is unreliable; use tooltips via `addRichTooltipCallback()` or `addIngredientInfo()` instead
+- `GuiGraphics` is now `GuiGraphicsExtractor` in this MC version
+
+## NeoForge-Specific Gotchas
+
+### Creative Tabs
+
+`CreativeTabRegistry.modify()` crashes on NeoForge with empty/new tabs. Use the builder pattern instead:
+
+```java
+// DON'T do this on NeoForge:
+CreativeTabRegistry.modify(TAB, (flags, output, canUseGameMasterBlocks) -> {
+    output.accept(new ItemStack(MY_ITEM.get()));
+});
+
+// DO this instead:
+CreativeTabRegistry.create(builder -> builder
+    .title(Component.translatable("itemGroup.mymod"))
+    .icon(() -> new ItemStack(MY_ITEM.get()))
+    .displayItems((parameters, output) -> {
+        output.accept(new ItemStack(MY_ITEM.get()));
+    })
+);
+```
+
+### Custom Tooltip Components
+
+Custom `TooltipComponent` classes need explicit registration on NeoForge via event:
+
+```java
+// In your NeoForge mod class:
+modEventBus.addListener(this::registerTooltipComponents);
+
+private void registerTooltipComponents(RegisterClientTooltipComponentFactoriesEvent event) {
+    event.register(MyTooltip.class, MyTooltipRenderer::new);
+}
+```
+
+Architectury's `ClientTooltipComponentRegistry.register()` handles Fabric automatically but NeoForge needs the event.
+
+### Platform-Specific Mixins
+
+Some client mixins may fail on NeoForge due to different method signatures between Fabric (intermediary) and NeoForge (Mojmap) mappings. If a mixin works on Fabric but crashes NeoForge with "failed injection check, (0/1) succeeded", move it to a platform-specific mixin config:
+
+1. Create `fabric/src/main/resources/mymod-fabric.mixins.json`
+2. Add it to `fabric.mod.json` mixins array
+3. Remove the problematic mixin from the common config
+
+## Architectury Project Structure Notes
+
+Common module resources (like `sagittary.mixins.json`) are bundled into platform jars via `shadowJar`, not the regular `jar` task. If you see "mixin config not found" errors, you're using the wrong jar file.
