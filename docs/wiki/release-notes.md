@@ -2,10 +2,17 @@
 
 Current target baseline:
 
-- Minecraft 1.21.1
+- Minecraft 26.1.2
 - Architectury
 - Fabric and NeoForge
-- Java 21
+- Java 25
+
+## 2.0.1 Development
+
+- Quiver progression now includes the base Quiver, Hunter's Quiver, and Ranger's Quiver.
+- Hunter and Ranger upgrades use smithing templates; the Ranger template appears in Trial Chamber rewards.
+- Sagittary recognizes optional Trinkets Updated chest/back quivers and optional Spelunkery materials.
+- Special thanks to **ODY** for requesting the expanded quiver features and examples that shaped this update.
 
 ## What Is Working
 

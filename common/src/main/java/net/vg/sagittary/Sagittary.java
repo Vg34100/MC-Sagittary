@@ -11,6 +11,9 @@ import net.vg.sagittary.component.ArrowComponent;
 import net.vg.sagittary.item.ComponentArrowItem;
 import net.vg.sagittary.loot.SagittaryLootModifier;
 import net.vg.sagittary.registry.ObjectRegistry;
+import net.vg.sagittary.item.QuiverItem;
+import net.vg.sagittary.network.CycleQuiverPayload;
+import dev.architectury.networking.NetworkManager;
 
 public final class Sagittary {
     public static final String MOD_ID = "sagittary";
@@ -29,6 +32,10 @@ public final class Sagittary {
                             .displayItems((parameters, output) -> {
                                 // Add quiver
                                 output.accept(new ItemStack(ObjectRegistry.QUIVER_ITEM.get()));
+                                output.accept(new ItemStack(ObjectRegistry.HUNTER_QUIVER_ITEM.get()));
+                                output.accept(new ItemStack(ObjectRegistry.RANGER_QUIVER_ITEM.get()));
+                                output.accept(new ItemStack(ObjectRegistry.HUNTER_QUIVER_UPGRADE.get()));
+                                output.accept(new ItemStack(ObjectRegistry.RANGER_QUIVER_UPGRADE.get()));
 
                                 // Add bows and crossbows
                                 output.accept(new ItemStack(ObjectRegistry.IRON_BOW_ITEM.get()));
@@ -71,5 +78,10 @@ public final class Sagittary {
         ObjectRegistry.init();
         TABS.register();
         SagittaryLootModifier.init();
+        NetworkManager.registerReceiver(NetworkManager.c2s(), CycleQuiverPayload.TYPE, CycleQuiverPayload.STREAM_CODEC,
+                (payload, context) -> context.queue(() -> {
+                    ItemStack quiver = QuiverItem.findActiveQuiver(context.getPlayer());
+                    if (!quiver.isEmpty()) QuiverItem.cycleSelectedArrow(quiver, payload.forward());
+                }));
     }
 }

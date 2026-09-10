@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:smithing_transform",
+  "template": "sagittary:hunter_quiver_upgrade",
+  "base": "sagittary:quiver",
+  "addition": "minecraft:iron_ingot",
+  "result": { "id": "sagittary:hunter_quiver" }
+}

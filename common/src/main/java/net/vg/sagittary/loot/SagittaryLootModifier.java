@@ -21,6 +21,13 @@ public class SagittaryLootModifier {
                         .add(LootItem.lootTableItem(ObjectRegistry.COMPOUND_BOW_ITEM.get())
                                 .setWeight(1))
                         .when(LootItemRandomChanceCondition.randomChance(0.15f))); // 15% chance
+
+                float rangerTemplateChance = key.equals(BuiltInLootTables.TRIAL_CHAMBERS_REWARD_OMINOUS) ? 0.20f : 0.10f;
+                context.addPool(LootPool.lootPool()
+                        .setRolls(ConstantValue.exactly(1))
+                        .add(LootItem.lootTableItem(ObjectRegistry.RANGER_QUIVER_UPGRADE.get())
+                                .setWeight(1))
+                        .when(LootItemRandomChanceCondition.randomChance(rangerTemplateChance)));
             }
 
             // Repeater Crossbow in Ancient City chests

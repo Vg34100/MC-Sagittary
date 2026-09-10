@@ -3,6 +3,7 @@ package net.vg.sagittary.mixin;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.vg.sagittary.item.QuiverItem;
+import net.vg.sagittary.enchantment.QuiverEnchantments;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
@@ -24,6 +25,9 @@ public class PlayerProjectileMixin {
         // Find a quiver with arrows
         ItemStack quiver = QuiverItem.findQuiverWithArrows(player);
         if (!quiver.isEmpty()) {
+            if (QuiverEnchantments.has(quiver, QuiverEnchantments.RANDOMIZER)) {
+                QuiverItem.selectRandomArrow(quiver, player.getRandom());
+            }
             ItemStack arrow = QuiverItem.peekArrow(quiver);
             if (!arrow.isEmpty()) {
                 // Check if this arrow type is supported by the weapon

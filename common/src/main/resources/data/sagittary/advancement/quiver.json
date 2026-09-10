@@ -1,0 +1,17 @@
+{
+  "parent": "sagittary:root",
+  "display": {
+    "icon": { "id": "sagittary:quiver" },
+    "title": { "translate": "advancement.sagittary.quiver.title" },
+    "description": { "translate": "advancement.sagittary.quiver.description" },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "criteria": {
+    "quiver": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "sagittary:quiver" }] }
+    }
+  }
+}

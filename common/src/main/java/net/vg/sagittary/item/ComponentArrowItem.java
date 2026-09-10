@@ -83,7 +83,7 @@ public class ComponentArrowItem extends ArrowItem {
     }
 
     private static int getModelData(ArrowParts parts) {
-        // Tips: flint(0), amethyst(1), copper(2), slime(3), glowstone(4), echo_shard(5), ender_pearl(6), iron(7), gold(8), diamond(9)
+        // Tips: vanilla materials (0-9), then Spelunkery materials (10-15).
         int tipIndex = switch (parts.getTipComponent()) {
             case FLINT_TIP -> 0;
             case AMETHYST_TIP -> 1;
@@ -95,6 +95,12 @@ public class ComponentArrowItem extends ArrowItem {
             case IRON_TIP -> 7;
             case GOLD_TIP -> 8;
             case DIAMOND_TIP -> 9;
+            case RUBY_TIP -> 10;
+            case SAPPHIRE_TIP -> 11;
+            case TOPAZ_TIP -> 12;
+            case BRONZE_TIP -> 13;
+            case ELECTRUM_TIP -> 14;
+            case INVAR_TIP -> 15;
             default -> 0;
         };
         // Shafts: stick(0), bamboo(1), blaze_rod(2), breeze_rod(3), bone(4)
@@ -114,7 +120,7 @@ public class ComponentArrowItem extends ArrowItem {
             default -> 0;
         };
         // Formula: 1 + (tipIndex * 15) + (shaftIndex * 3) + fletchingIndex
-        // 10 tips * 5 shafts * 3 fletchings = 150 combinations (indices 1-150)
+        // 16 tips * 5 shafts * 3 fletchings = 240 combinations (indices 1-240)
         return 1 + (tipIndex * 15) + (shaftIndex * 3) + fletchingIndex;
     }
 }

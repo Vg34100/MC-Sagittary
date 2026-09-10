@@ -5,7 +5,7 @@ Sagittary expands Minecraft archery with a modular arrow system built around the
 
 Instead of crafting only one standard arrow, you can combine different parts to create arrows with different flight profiles, utility, and combat effects. Tips, shafts, and fletchings each matter, and their properties stack together.
 
-![Component Based Arrows](https://cdn.modrinth.com/data/kh5dbjUL/images/3e995544e942bbbd0554ff75d309e27b8abc74a4.png)
+![Sagittary Arrows](https://cdn.modrinth.com/data/kh5dbjUL/images/59f3bf0f2ee30db4e602a5fe6303abdcbe6e5c0d.png)
 
 ## What's New in 2.0
 
@@ -34,7 +34,7 @@ Version 2.0 is a major expansion:
 
 ## How It Works
 
-![Crafting Arrows](https://cdn.modrinth.com/data/kh5dbjUL/images/c64a7db1efe6b81e1832775c1db9f5568b7d2fdb.png)
+![Crafting Arrows](https://cdn.modrinth.com/data/kh5dbjUL/images/d6f937a77fb233f769d895a842332551845737dc.png)
 
 Each arrow is built from three components:
 

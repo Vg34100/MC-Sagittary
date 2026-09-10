@@ -1,0 +1,75 @@
+{
+  "parent": "sagittary:first_arrow",
+  "display": {
+    "icon": {
+      "id": "sagittary:component_arrow",
+      "components": {
+        "minecraft:custom_model_data": { "strings": ["136"] },
+        "sagittary:arrow_parts": {
+          "tip": "diamond",
+          "shaft": "stick",
+          "fletching": "feather"
+        }
+      }
+    },
+    "title": {
+      "translate": "advancement.sagittary.arsenal.title"
+    },
+    "description": {
+      "translate": "advancement.sagittary.arsenal.description"
+    },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "criteria": {
+    "unique_1": {
+      "trigger": "minecraft:impossible"
+    },
+    "unique_2": {
+      "trigger": "minecraft:impossible"
+    },
+    "unique_3": {
+      "trigger": "minecraft:impossible"
+    },
+    "unique_4": {
+      "trigger": "minecraft:impossible"
+    },
+    "unique_5": {
+      "trigger": "minecraft:impossible"
+    },
+    "unique_6": {
+      "trigger": "minecraft:impossible"
+    },
+    "unique_7": {
+      "trigger": "minecraft:impossible"
+    },
+    "unique_8": {
+      "trigger": "minecraft:impossible"
+    },
+    "unique_9": {
+      "trigger": "minecraft:impossible"
+    },
+    "unique_10": {
+      "trigger": "minecraft:impossible"
+    },
+    "unique_11": {
+      "trigger": "minecraft:impossible"
+    },
+    "unique_12": {
+      "trigger": "minecraft:impossible"
+    },
+    "unique_13": {
+      "trigger": "minecraft:impossible"
+    },
+    "unique_14": {
+      "trigger": "minecraft:impossible"
+    },
+    "unique_15": {
+      "trigger": "minecraft:impossible"
+    },
+    "unique_16": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}

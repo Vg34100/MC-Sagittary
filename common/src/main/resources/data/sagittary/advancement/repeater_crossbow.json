@@ -1,0 +1,17 @@
+{
+  "parent": "sagittary:compound_bow",
+  "display": {
+    "icon": { "id": "sagittary:repeater_crossbow" },
+    "title": { "translate": "advancement.sagittary.repeater_crossbow.title" },
+    "description": { "translate": "advancement.sagittary.repeater_crossbow.description" },
+    "frame": "challenge",
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "criteria": {
+    "repeater_crossbow": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "sagittary:repeater_crossbow" }] }
+    }
+  }
+}

@@ -10,6 +10,8 @@
     "FletchingTableBlockMixin",
     "BundleContentsMutableAccessor",
     "BundleContentsAccessor",
+    "AbstractArrowAccessor",
+    "AbstractArrowRecoveryMixin",
     "PlayerProjectileMixin",
     "ProjectileWeaponItemMixin"
   ],

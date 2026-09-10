@@ -1,0 +1,17 @@
+{
+  "parent": "sagittary:ranger_template",
+  "display": {
+    "icon": { "id": "sagittary:ranger_quiver" },
+    "title": { "translate": "advancement.sagittary.ranger_quiver.title" },
+    "description": { "translate": "advancement.sagittary.ranger_quiver.description" },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "criteria": {
+    "ranger_quiver": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "sagittary:ranger_quiver" }] }
+    }
+  }
+}

@@ -1,0 +1,1 @@
+{ "parent": "minecraft:item/generated", "textures": { "layer0": "sagittary:item/ranger_quiver_full" } }

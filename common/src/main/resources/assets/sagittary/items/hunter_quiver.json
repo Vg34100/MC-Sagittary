@@ -1,0 +1,3 @@
+{
+  "model": { "type": "minecraft:range_dispatch", "property": "minecraft:bundle/fullness", "entries": [{ "threshold": 0.0001, "model": { "type": "minecraft:model", "model": "sagittary:item/hunter_quiver_full" } }], "fallback": { "type": "minecraft:model", "model": "sagittary:item/hunter_quiver_empty" } }
+}

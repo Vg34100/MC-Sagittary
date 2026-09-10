@@ -1,0 +1,44 @@
+{
+  "parent": "sagittary:first_arrow",
+  "display": {
+    "icon": {
+      "id": "sagittary:component_arrow",
+      "components": {
+        "minecraft:custom_model_data": { "strings": ["76"] },
+        "sagittary:arrow_parts": {
+          "tip": "echo_shard",
+          "shaft": "stick",
+          "fletching": "feather"
+        }
+      }
+    },
+    "title": {
+      "translate": "advancement.sagittary.echo_shard.title"
+    },
+    "description": {
+      "translate": "advancement.sagittary.echo_shard.description"
+    },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "criteria": {
+    "echo_shard": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": {
+        "items": [
+          {
+            "items": "sagittary:component_arrow",
+            "components": {
+              "sagittary:arrow_parts": {
+                "tip": "echo_shard",
+                "shaft": "stick",
+                "fletching": "feather"
+              }
+            }
+          }
+        ]
+      }
+    }
+  }
+}

@@ -1,0 +1,454 @@
+{
+  "criteria": {
+    "flint_stick_feather": {
+      "trigger": "minecraft:impossible"
+    },
+    "flint_stick_paper": {
+      "trigger": "minecraft:impossible"
+    },
+    "flint_stick_phantom_membrane": {
+      "trigger": "minecraft:impossible"
+    },
+    "flint_bamboo_feather": {
+      "trigger": "minecraft:impossible"
+    },
+    "flint_bamboo_paper": {
+      "trigger": "minecraft:impossible"
+    },
+    "flint_bamboo_phantom_membrane": {
+      "trigger": "minecraft:impossible"
+    },
+    "flint_blaze_rod_feather": {
+      "trigger": "minecraft:impossible"
+    },
+    "flint_blaze_rod_paper": {
+      "trigger": "minecraft:impossible"
+    },
+    "flint_blaze_rod_phantom_membrane": {
+      "trigger": "minecraft:impossible"
+    },
+    "flint_breeze_rod_feather": {
+      "trigger": "minecraft:impossible"
+    },
+    "flint_breeze_rod_paper": {
+      "trigger": "minecraft:impossible"
+    },
+    "flint_breeze_rod_phantom_membrane": {
+      "trigger": "minecraft:impossible"
+    },
+    "flint_bone_feather": {
+      "trigger": "minecraft:impossible"
+    },
+    "flint_bone_paper": {
+      "trigger": "minecraft:impossible"
+    },
+    "flint_bone_phantom_membrane": {
+      "trigger": "minecraft:impossible"
+    },
+    "amethyst_stick_feather": {
+      "trigger": "minecraft:impossible"
+    },
+    "amethyst_stick_paper": {
+      "trigger": "minecraft:impossible"
+    },
+    "amethyst_stick_phantom_membrane": {
+      "trigger": "minecraft:impossible"
+    },
+    "amethyst_bamboo_feather": {
+      "trigger": "minecraft:impossible"
+    },
+    "amethyst_bamboo_paper": {
+      "trigger": "minecraft:impossible"
+    },
+    "amethyst_bamboo_phantom_membrane": {
+      "trigger": "minecraft:impossible"
+    },
+    "amethyst_blaze_rod_feather": {
+      "trigger": "minecraft:impossible"
+    },
+    "amethyst_blaze_rod_paper": {
+      "trigger": "minecraft:impossible"
+    },
+    "amethyst_blaze_rod_phantom_membrane": {
+      "trigger": "minecraft:impossible"
+    },
+    "amethyst_breeze_rod_feather": {
+      "trigger": "minecraft:impossible"
+    },
+    "amethyst_breeze_rod_paper": {
+      "trigger": "minecraft:impossible"
+    },
+    "amethyst_breeze_rod_phantom_membrane": {
+      "trigger": "minecraft:impossible"
+    },
+    "amethyst_bone_feather": {
+      "trigger": "minecraft:impossible"
+    },
+    "amethyst_bone_paper": {
+      "trigger": "minecraft:impossible"
+    },
+    "amethyst_bone_phantom_membrane": {
+      "trigger": "minecraft:impossible"
+    },
+    "copper_stick_feather": {
+      "trigger": "minecraft:impossible"
+    },
+    "copper_stick_paper": {
+      "trigger": "minecraft:impossible"
+    },
+    "copper_stick_phantom_membrane": {
+      "trigger": "minecraft:impossible"
+    },
+    "copper_bamboo_feather": {
+      "trigger": "minecraft:impossible"
+    },
+    "copper_bamboo_paper": {
+      "trigger": "minecraft:impossible"
+    },
+    "copper_bamboo_phantom_membrane": {
+      "trigger": "minecraft:impossible"
+    },
+    "copper_blaze_rod_feather": {
+      "trigger": "minecraft:impossible"
+    },
+    "copper_blaze_rod_paper": {
+      "trigger": "minecraft:impossible"
+    },
+    "copper_blaze_rod_phantom_membrane": {
+      "trigger": "minecraft:impossible"
+    },
+    "copper_breeze_rod_feather": {
+      "trigger": "minecraft:impossible"
+    },
+    "copper_breeze_rod_paper": {
+      "trigger": "minecraft:impossible"
+    },
+    "copper_breeze_rod_phantom_membrane": {
+      "trigger": "minecraft:impossible"
+    },
+    "copper_bone_feather": {
+      "trigger": "minecraft:impossible"
+    },
+    "copper_bone_paper": {
+      "trigger": "minecraft:impossible"
+    },
+    "copper_bone_phantom_membrane": {
+      "trigger": "minecraft:impossible"
+    },
+    "slime_stick_feather": {
+      "trigger": "minecraft:impossible"
+    },
+    "slime_stick_paper": {
+      "trigger": "minecraft:impossible"
+    },
+    "slime_stick_phantom_membrane": {
+      "trigger": "minecraft:impossible"
+    },
+    "slime_bamboo_feather": {
+      "trigger": "minecraft:impossible"
+    },
+    "slime_bamboo_paper": {
+      "trigger": "minecraft:impossible"
+    },
+    "slime_bamboo_phantom_membrane": {
+      "trigger": "minecraft:impossible"
+    },
+    "slime_blaze_rod_feather": {
+      "trigger": "minecraft:impossible"
+    },
+    "slime_blaze_rod_paper": {
+      "trigger": "minecraft:impossible"
+    },
+    "slime_blaze_rod_phantom_membrane": {
+      "trigger": "minecraft:impossible"
+    },
+    "slime_breeze_rod_feather": {
+      "trigger": "minecraft:impossible"
+    },
+    "slime_breeze_rod_paper": {
+      "trigger": "minecraft:impossible"
+    },
+    "slime_breeze_rod_phantom_membrane": {
+      "trigger": "minecraft:impossible"
+    },
+    "slime_bone_feather": {
+      "trigger": "minecraft:impossible"
+    },
+    "slime_bone_paper": {
+      "trigger": "minecraft:impossible"
+    },
+    "slime_bone_phantom_membrane": {
+      "trigger": "minecraft:impossible"
+    },
+    "glowstone_stick_feather": {
+      "trigger": "minecraft:impossible"
+    },
+    "glowstone_stick_paper": {
+      "trigger": "minecraft:impossible"
+    },
+    "glowstone_stick_phantom_membrane": {
+      "trigger": "minecraft:impossible"
+    },
+    "glowstone_bamboo_feather": {
+      "trigger": "minecraft:impossible"
+    },
+    "glowstone_bamboo_paper": {
+      "trigger": "minecraft:impossible"
+    },
+    "glowstone_bamboo_phantom_membrane": {
+      "trigger": "minecraft:impossible"
+    },
+    "glowstone_blaze_rod_feather": {
+      "trigger": "minecraft:impossible"
+    },
+    "glowstone_blaze_rod_paper": {
+      "trigger": "minecraft:impossible"
+    },
+    "glowstone_blaze_rod_phantom_membrane": {
+      "trigger": "minecraft:impossible"
+    },
+    "glowstone_breeze_rod_feather": {
+      "trigger": "minecraft:impossible"
+    },
+    "glowstone_breeze_rod_paper": {
+      "trigger": "minecraft:impossible"
+    },
+    "glowstone_breeze_rod_phantom_membrane": {
+      "trigger": "minecraft:impossible"
+    },
+    "glowstone_bone_feather": {
+      "trigger": "minecraft:impossible"
+    },
+    "glowstone_bone_paper": {
+      "trigger": "minecraft:impossible"
+    },
+    "glowstone_bone_phantom_membrane": {
+      "trigger": "minecraft:impossible"
+    },
+    "echo_shard_stick_feather": {
+      "trigger": "minecraft:impossible"
+    },
+    "echo_shard_stick_paper": {
+      "trigger": "minecraft:impossible"
+    },
+    "echo_shard_stick_phantom_membrane": {
+      "trigger": "minecraft:impossible"
+    },
+    "echo_shard_bamboo_feather": {
+      "trigger": "minecraft:impossible"
+    },
+    "echo_shard_bamboo_paper": {
+      "trigger": "minecraft:impossible"
+    },
+    "echo_shard_bamboo_phantom_membrane": {
+      "trigger": "minecraft:impossible"
+    },
+    "echo_shard_blaze_rod_feather": {
+      "trigger": "minecraft:impossible"
+    },
+    "echo_shard_blaze_rod_paper": {
+      "trigger": "minecraft:impossible"
+    },
+    "echo_shard_blaze_rod_phantom_membrane": {
+      "trigger": "minecraft:impossible"
+    },
+    "echo_shard_breeze_rod_feather": {
+      "trigger": "minecraft:impossible"
+    },
+    "echo_shard_breeze_rod_paper": {
+      "trigger": "minecraft:impossible"
+    },
+    "echo_shard_breeze_rod_phantom_membrane": {
+      "trigger": "minecraft:impossible"
+    },
+    "echo_shard_bone_feather": {
+      "trigger": "minecraft:impossible"
+    },
+    "echo_shard_bone_paper": {
+      "trigger": "minecraft:impossible"
+    },
+    "echo_shard_bone_phantom_membrane": {
+      "trigger": "minecraft:impossible"
+    },
+    "ender_pearl_stick_feather": {
+      "trigger": "minecraft:impossible"
+    },
+    "ender_pearl_stick_paper": {
+      "trigger": "minecraft:impossible"
+    },
+    "ender_pearl_stick_phantom_membrane": {
+      "trigger": "minecraft:impossible"
+    },
+    "ender_pearl_bamboo_feather": {
+      "trigger": "minecraft:impossible"
+    },
+    "ender_pearl_bamboo_paper": {
+      "trigger": "minecraft:impossible"
+    },
+    "ender_pearl_bamboo_phantom_membrane": {
+      "trigger": "minecraft:impossible"
+    },
+    "ender_pearl_blaze_rod_feather": {
+      "trigger": "minecraft:impossible"
+    },
+    "ender_pearl_blaze_rod_paper": {
+      "trigger": "minecraft:impossible"
+    },
+    "ender_pearl_blaze_rod_phantom_membrane": {
+      "trigger": "minecraft:impossible"
+    },
+    "ender_pearl_breeze_rod_feather": {
+      "trigger": "minecraft:impossible"
+    },
+    "ender_pearl_breeze_rod_paper": {
+      "trigger": "minecraft:impossible"
+    },
+    "ender_pearl_breeze_rod_phantom_membrane": {
+      "trigger": "minecraft:impossible"
+    },
+    "ender_pearl_bone_feather": {
+      "trigger": "minecraft:impossible"
+    },
+    "ender_pearl_bone_paper": {
+      "trigger": "minecraft:impossible"
+    },
+    "ender_pearl_bone_phantom_membrane": {
+      "trigger": "minecraft:impossible"
+    },
+    "iron_stick_feather": {
+      "trigger": "minecraft:impossible"
+    },
+    "iron_stick_paper": {
+      "trigger": "minecraft:impossible"
+    },
+    "iron_stick_phantom_membrane": {
+      "trigger": "minecraft:impossible"
+    },
+    "iron_bamboo_feather": {
+      "trigger": "minecraft:impossible"
+    },
+    "iron_bamboo_paper": {
+      "trigger": "minecraft:impossible"
+    },
+    "iron_bamboo_phantom_membrane": {
+      "trigger": "minecraft:impossible"
+    },
+    "iron_blaze_rod_feather": {
+      "trigger": "minecraft:impossible"
+    },
+    "iron_blaze_rod_paper": {
+      "trigger": "minecraft:impossible"
+    },
+    "iron_blaze_rod_phantom_membrane": {
+      "trigger": "minecraft:impossible"
+    },
+    "iron_breeze_rod_feather": {
+      "trigger": "minecraft:impossible"
+    },
+    "iron_breeze_rod_paper": {
+      "trigger": "minecraft:impossible"
+    },
+    "iron_breeze_rod_phantom_membrane": {
+      "trigger": "minecraft:impossible"
+    },
+    "iron_bone_feather": {
+      "trigger": "minecraft:impossible"
+    },
+    "iron_bone_paper": {
+      "trigger": "minecraft:impossible"
+    },
+    "iron_bone_phantom_membrane": {
+      "trigger": "minecraft:impossible"
+    },
+    "gold_stick_feather": {
+      "trigger": "minecraft:impossible"
+    },
+    "gold_stick_paper": {
+      "trigger": "minecraft:impossible"
+    },
+    "gold_stick_phantom_membrane": {
+      "trigger": "minecraft:impossible"
+    },
+    "gold_bamboo_feather": {
+      "trigger": "minecraft:impossible"
+    },
+    "gold_bamboo_paper": {
+      "trigger": "minecraft:impossible"
+    },
+    "gold_bamboo_phantom_membrane": {
+      "trigger": "minecraft:impossible"
+    },
+    "gold_blaze_rod_feather": {
+      "trigger": "minecraft:impossible"
+    },
+    "gold_blaze_rod_paper": {
+      "trigger": "minecraft:impossible"
+    },
+    "gold_blaze_rod_phantom_membrane": {
+      "trigger": "minecraft:impossible"
+    },
+    "gold_breeze_rod_feather": {
+      "trigger": "minecraft:impossible"
+    },
+    "gold_breeze_rod_paper": {
+      "trigger": "minecraft:impossible"
+    },
+    "gold_breeze_rod_phantom_membrane": {
+      "trigger": "minecraft:impossible"
+    },
+    "gold_bone_feather": {
+      "trigger": "minecraft:impossible"
+    },
+    "gold_bone_paper": {
+      "trigger": "minecraft:impossible"
+    },
+    "gold_bone_phantom_membrane": {
+      "trigger": "minecraft:impossible"
+    },
+    "diamond_stick_feather": {
+      "trigger": "minecraft:impossible"
+    },
+    "diamond_stick_paper": {
+      "trigger": "minecraft:impossible"
+    },
+    "diamond_stick_phantom_membrane": {
+      "trigger": "minecraft:impossible"
+    },
+    "diamond_bamboo_feather": {
+      "trigger": "minecraft:impossible"
+    },
+    "diamond_bamboo_paper": {
+      "trigger": "minecraft:impossible"
+    },
+    "diamond_bamboo_phantom_membrane": {
+      "trigger": "minecraft:impossible"
+    },
+    "diamond_blaze_rod_feather": {
+      "trigger": "minecraft:impossible"
+    },
+    "diamond_blaze_rod_paper": {
+      "trigger": "minecraft:impossible"
+    },
+    "diamond_blaze_rod_phantom_membrane": {
+      "trigger": "minecraft:impossible"
+    },
+    "diamond_breeze_rod_feather": {
+      "trigger": "minecraft:impossible"
+    },
+    "diamond_breeze_rod_paper": {
+      "trigger": "minecraft:impossible"
+    },
+    "diamond_breeze_rod_phantom_membrane": {
+      "trigger": "minecraft:impossible"
+    },
+    "diamond_bone_feather": {
+      "trigger": "minecraft:impossible"
+    },
+    "diamond_bone_paper": {
+      "trigger": "minecraft:impossible"
+    },
+    "diamond_bone_phantom_membrane": {
+      "trigger": "minecraft:impossible"
+    }
+  }
+}

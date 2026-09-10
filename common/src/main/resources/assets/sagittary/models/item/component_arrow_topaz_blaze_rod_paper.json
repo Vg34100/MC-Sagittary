@@ -1,0 +1,8 @@
+{
+  "parent": "minecraft:item/generated",
+  "textures": {
+    "layer0": "sagittary:item/topaz_tip",
+    "layer1": "sagittary:item/blaze_rod_shaft",
+    "layer2": "sagittary:item/paper_fletching"
+  }
+}

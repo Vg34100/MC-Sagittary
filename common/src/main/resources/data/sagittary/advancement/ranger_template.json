@@ -1,0 +1,17 @@
+{
+  "parent": "sagittary:upgrade_quiver",
+  "display": {
+    "icon": { "id": "sagittary:ranger_quiver_upgrade" },
+    "title": { "translate": "advancement.sagittary.ranger_template.title" },
+    "description": { "translate": "advancement.sagittary.ranger_template.description" },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "criteria": {
+    "ranger_quiver_upgrade": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "sagittary:ranger_quiver_upgrade" }] }
+    }
+  }
+}

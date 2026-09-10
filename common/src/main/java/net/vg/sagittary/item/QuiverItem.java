@@ -21,6 +21,7 @@ import net.minecraft.world.item.component.BundleContents;
 import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.Level;
 import net.vg.sagittary.mixin.BundleContentsMutableAccessor;
+import net.vg.sagittary.compat.trinkets.TrinketsCompat;
 import org.apache.commons.lang3.math.Fraction;
 
 import java.util.ArrayList;
@@ -34,14 +35,20 @@ import java.util.function.Consumer;
  * Capacity: 256 arrows (4 stacks of 64)
  */
 public class QuiverItem extends Item {
-    public static final int MAX_CAPACITY = 256; // 4 stacks of arrows
+    /** Retained for compatibility with the old tooltip renderer; Ranger capacity. */
+    public static final int MAX_CAPACITY = QuiverTier.RANGER.capacity();
     // Weight per arrow - 1/256 so that 256 arrows = weight 1.0 (full) in tooltip display
     private static final Fraction ARROW_WEIGHT = Fraction.getFraction(1, MAX_CAPACITY);
     public static final int BAR_COLOR = 0x8B4513; // Brown color for quiver
 
-    public QuiverItem(Properties properties) {
-        super(properties.stacksTo(1).component(DataComponents.BUNDLE_CONTENTS, BundleContents.EMPTY));
+    private final QuiverTier tier;
+
+    public QuiverItem(Properties properties, QuiverTier tier) {
+        super(properties.stacksTo(1).enchantable(10).component(DataComponents.BUNDLE_CONTENTS, BundleContents.EMPTY));
+        this.tier = tier;
     }
+
+    public QuiverTier getTier() { return tier; }
 
     @Override
     public boolean overrideStackedOnOther(ItemStack quiver, Slot slot, ClickAction action, Player player) {
@@ -71,7 +78,7 @@ public class QuiverItem extends Item {
         } else if (isValidArrow(stackInSlot)) {
             // Add arrow to quiver using direct insertion (bypasses weight limit)
             int currentCount = getTotalArrowCount(contents);
-            int spaceLeft = MAX_CAPACITY - currentCount;
+            int spaceLeft = canAcceptArrow(contents, stackInSlot, quiver) ? getCapacity(quiver) - currentCount : 0;
             int toInsert = Math.min(stackInSlot.getCount(), spaceLeft);
 
             if (toInsert > 0) {
@@ -108,7 +115,7 @@ public class QuiverItem extends Item {
         } else if (isValidArrow(other)) {
             // Add arrow to quiver using direct insertion (bypasses weight limit)
             int currentCount = getTotalArrowCount(contents);
-            int spaceLeft = MAX_CAPACITY - currentCount;
+            int spaceLeft = canAcceptArrow(contents, other, quiver) ? getCapacity(quiver) - currentCount : 0;
             int toInsert = Math.min(other.getCount(), spaceLeft);
 
             if (toInsert > 0) {
@@ -130,6 +137,7 @@ public class QuiverItem extends Item {
     private static BundleContents addArrowsToContents(BundleContents contents, ItemStack toAdd) {
         List<ItemStack> items = new ArrayList<>();
         contents.itemCopyStream().forEach(items::add);
+        int selectedIndex = contents.getSelectedItemIndex();
 
         int remaining = toAdd.getCount();
         int maxStackSize = toAdd.getMaxStackSize();
@@ -149,14 +157,18 @@ public class QuiverItem extends Item {
         }
 
         // Add remaining as new stacks
+        int insertedStacks = 0;
         while (remaining > 0) {
             int stackSize = Math.min(remaining, maxStackSize);
             items.add(0, toAdd.copyWithCount(stackSize)); // Add to front
             remaining -= stackSize;
+            insertedStacks++;
         }
 
-        // Rebuild contents
-        return buildContentsFromList(items);
+        // New stacks are added before the existing contents, so retain the selected
+        // arrow by moving its index forward by the number of inserted stacks.
+        if (selectedIndex >= 0) selectedIndex += insertedStacks;
+        return buildContentsFromList(items, selectedIndex);
     }
 
     /**
@@ -270,21 +282,87 @@ public class QuiverItem extends Item {
         return stack.getItem() instanceof ArrowItem;
     }
 
+    public static int getCapacity(ItemStack quiver) {
+        return quiver.getItem() instanceof QuiverItem item ? item.tier.capacity() : 0;
+    }
+
+    public static int getTypeLimit(ItemStack quiver) {
+        return quiver.getItem() instanceof QuiverItem item ? item.tier.typeLimit() : 0;
+    }
+
+    public static int getDistinctArrowTypes(BundleContents contents) {
+        if (contents == null) return 0;
+        List<ItemStack> types = new ArrayList<>();
+        contents.itemCopyStream().forEach(stack -> {
+            if (types.stream().noneMatch(existing -> ItemStack.isSameItemSameComponents(existing, stack))) {
+                types.add(stack);
+            }
+        });
+        return types.size();
+    }
+
+    /** Existing over-capacity 1.0.1 quivers are intentionally not modified. */
+    public static boolean canAcceptArrow(BundleContents contents, ItemStack arrow, ItemStack quiver) {
+        if (!isValidArrow(arrow) || getTotalArrowCount(contents) >= getCapacity(quiver)) return false;
+        if (contents == null || !(quiver.getItem() instanceof QuiverItem item) || !item.tier.hasTypeLimit()) return true;
+        boolean alreadyPresent = contents.itemCopyStream()
+                .anyMatch(existing -> ItemStack.isSameItemSameComponents(existing, arrow));
+        return alreadyPresent || getDistinctArrowTypes(contents) < getTypeLimit(quiver);
+    }
+
+    /** Stores as many arrows as the tier rules allow and returns the unaccepted remainder. */
+    public static ItemStack storeArrows(ItemStack quiver, ItemStack arrows) {
+        if (!(quiver.getItem() instanceof QuiverItem) || !isValidArrow(arrows)) return arrows;
+        BundleContents contents = quiver.getOrDefault(DataComponents.BUNDLE_CONTENTS, BundleContents.EMPTY);
+        if (!canAcceptArrow(contents, arrows, quiver)) return arrows;
+        int count = Math.min(arrows.getCount(), getCapacity(quiver) - getTotalArrowCount(contents));
+        if (count <= 0) return arrows;
+        quiver.set(DataComponents.BUNDLE_CONTENTS, addArrowsToContents(contents, arrows.copyWithCount(count)));
+        return arrows.copyWithCount(arrows.getCount() - count);
+    }
+
     /**
      * Find the first quiver in the player's inventory that has arrows.
      * Returns the quiver ItemStack or ItemStack.EMPTY if none found.
      */
     public static ItemStack findQuiverWithArrows(Player player) {
-        for (int i = 0; i < player.getInventory().getContainerSize(); i++) {
+        ItemStack equipped = TrinketsCompat.getEquippedBackQuiver(player);
+        if (!equipped.isEmpty()) {
+            BundleContents contents = equipped.get(DataComponents.BUNDLE_CONTENTS);
+            if (contents != null && !contents.isEmpty()) return equipped;
+        }
+
+        // Prefer hotbar quivers before the remainder of the inventory.
+        for (int i = 0; i < Math.min(9, player.getInventory().getContainerSize()); i++) {
             ItemStack stack = player.getInventory().getItem(i);
-            if (stack.getItem() instanceof QuiverItem) {
-                BundleContents contents = stack.get(DataComponents.BUNDLE_CONTENTS);
-                if (contents != null && !contents.isEmpty()) {
-                    return stack;
-                }
-            }
+            if (stack.getItem() instanceof QuiverItem && hasArrows(stack)) return stack;
+        }
+        for (int i = 9; i < player.getInventory().getContainerSize(); i++) {
+            ItemStack stack = player.getInventory().getItem(i);
+            if (stack.getItem() instanceof QuiverItem && hasArrows(stack)) return stack;
         }
         return ItemStack.EMPTY;
+    }
+
+    public static ItemStack findActiveQuiver(Player player) {
+        ItemStack equipped = TrinketsCompat.getEquippedBackQuiver(player);
+        if (!equipped.isEmpty()) return equipped;
+        for (int i = 0; i < Math.min(9, player.getInventory().getContainerSize()); i++) {
+            ItemStack stack = player.getInventory().getItem(i);
+            if (stack.getItem() instanceof QuiverItem) {
+                return stack;
+            }
+        }
+        for (int i = 9; i < player.getInventory().getContainerSize(); i++) {
+            ItemStack stack = player.getInventory().getItem(i);
+            if (stack.getItem() instanceof QuiverItem) return stack;
+        }
+        return ItemStack.EMPTY;
+    }
+
+    private static boolean hasArrows(ItemStack stack) {
+        BundleContents contents = stack.get(DataComponents.BUNDLE_CONTENTS);
+        return contents != null && !contents.isEmpty();
     }
 
     /**
@@ -308,6 +386,18 @@ public class QuiverItem extends Item {
 
         // Fallback to first item
         return contents.itemCopyStream().findFirst().orElse(ItemStack.EMPTY);
+    }
+
+    public static void selectRandomArrow(ItemStack quiver, net.minecraft.util.RandomSource random) {
+        BundleContents contents = quiver.get(DataComponents.BUNDLE_CONTENTS);
+        if (contents == null || contents.isEmpty()) return;
+        List<ItemStack> items = new ArrayList<>();
+        contents.itemCopyStream().forEach(items::add);
+        if (items.size() > 1) {
+            ItemStack selected = items.remove(random.nextInt(items.size()));
+            items.add(0, selected);
+            quiver.set(DataComponents.BUNDLE_CONTENTS, buildContentsFromList(items, 0));
+        }
     }
 
     /**
@@ -430,7 +520,7 @@ public class QuiverItem extends Item {
         BundleContents contents = stack.get(DataComponents.BUNDLE_CONTENTS);
         if (contents == null) return 0;
         int totalArrows = getTotalArrowCount(contents);
-        return Mth.clamp(Math.round(13.0F * (float) totalArrows / MAX_CAPACITY), 0, 13);
+        return Mth.clamp(Math.round(13.0F * (float) totalArrows / getCapacity(stack)), 0, 13);
     }
 
     @Override
@@ -453,7 +543,8 @@ public class QuiverItem extends Item {
 
             // Show capacity
             int totalArrows = getTotalArrowCount(contents);
-            consumer.accept(Component.literal("Arrows: " + totalArrows + "/" + MAX_CAPACITY)
+            String typeText = tier.hasTypeLimit() ? ", Types: " + getDistinctArrowTypes(contents) + "/" + tier.typeLimit() : ", Types: unlimited";
+            consumer.accept(Component.literal("Arrows: " + totalArrows + "/" + tier.capacity() + typeText)
                     .withStyle(ChatFormatting.DARK_GRAY));
         }
     }
@@ -500,7 +591,7 @@ public class QuiverItem extends Item {
         }
 
         // Use custom QuiverTooltip with correct capacity (256)
-        return Optional.of(QuiverTooltip.fromContents(contents, MAX_CAPACITY));
+        return Optional.of(QuiverTooltip.fromContents(contents, tier.capacity()));
     }
 
     private void playRemoveSound(Entity entity) {

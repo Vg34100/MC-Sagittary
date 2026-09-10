@@ -1,0 +1,17 @@
+{
+  "parent": "sagittary:root",
+  "display": {
+    "icon": { "id": "sagittary:compound_bow" },
+    "title": { "translate": "advancement.sagittary.compound_bow.title" },
+    "description": { "translate": "advancement.sagittary.compound_bow.description" },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "criteria": {
+    "compound_bow": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "sagittary:compound_bow" }] }
+    }
+  }
+}

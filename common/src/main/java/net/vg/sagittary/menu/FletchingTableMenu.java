@@ -5,6 +5,7 @@ import net.minecraft.world.Container;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerLevelAccess;
 import net.minecraft.world.inventory.ResultContainer;
@@ -14,6 +15,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.alchemy.PotionContents;
 import net.minecraft.world.level.block.Blocks;
 import net.vg.sagittary.component.ArrowComponent;
+import net.vg.sagittary.advancement.ArrowDiscoveryAdvancements;
 import net.vg.sagittary.item.ComponentArrowItem;
 import net.vg.sagittary.registry.ObjectRegistry;
 
@@ -265,6 +267,9 @@ public class FletchingTableMenu extends AbstractContainerMenu {
         
         @Override
         public void onTake(Player player, ItemStack stack) {
+            if (player instanceof ServerPlayer serverPlayer) {
+                ArrowDiscoveryAdvancements.recordCraft(serverPlayer, stack);
+            }
             // Consume one item from each input slot
             fletchingContainer.removeItem(TIP_SLOT, 1);
             fletchingContainer.removeItem(SHAFT_SLOT, 1);

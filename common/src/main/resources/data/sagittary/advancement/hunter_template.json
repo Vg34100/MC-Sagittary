@@ -1,0 +1,17 @@
+{
+  "parent": "sagittary:quiver",
+  "display": {
+    "icon": { "id": "sagittary:hunter_quiver_upgrade" },
+    "title": { "translate": "advancement.sagittary.hunter_template.title" },
+    "description": { "translate": "advancement.sagittary.hunter_template.description" },
+    "frame": "goal",
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "criteria": {
+    "hunter_quiver_upgrade": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "sagittary:hunter_quiver_upgrade" }] }
+    }
+  }
+}

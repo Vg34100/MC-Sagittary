@@ -21,6 +21,8 @@ import net.vg.sagittary.dispenser.ComponentArrowDispenseBehavior;
 import net.vg.sagittary.entity.ComponentArrowEntity;
 import net.vg.sagittary.item.ComponentArrowItem;
 import net.vg.sagittary.item.QuiverItem;
+import net.vg.sagittary.item.QuiverTier;
+import net.vg.sagittary.compat.trinkets.TrinketsCompat;
 import net.vg.sagittary.item.IronBowItem;
 import net.vg.sagittary.item.IronCrossbowItem;
 import net.vg.sagittary.item.CompoundBowItem;
@@ -58,8 +60,20 @@ public class ObjectRegistry {
     });
 
     public static final RegistrySupplier<Item> QUIVER_ITEM = Util.registerItem(ITEMS, ITEM_REGISTRAR, Identifier.of("quiver"), () -> {
-        return new QuiverItem(new Item.Properties().setId(Util.createItemKey("quiver")));
+        return new QuiverItem(TrinketsCompat.makeBackEquippable(new Item.Properties().setId(Util.createItemKey("quiver"))), QuiverTier.BASIC);
     });
+
+    public static final RegistrySupplier<Item> HUNTER_QUIVER_ITEM = Util.registerItem(ITEMS, ITEM_REGISTRAR, Identifier.of("hunter_quiver"), () ->
+        new QuiverItem(TrinketsCompat.makeBackEquippable(new Item.Properties().setId(Util.createItemKey("hunter_quiver"))), QuiverTier.HUNTER));
+
+    public static final RegistrySupplier<Item> RANGER_QUIVER_ITEM = Util.registerItem(ITEMS, ITEM_REGISTRAR, Identifier.of("ranger_quiver"), () ->
+        new QuiverItem(TrinketsCompat.makeBackEquippable(new Item.Properties().setId(Util.createItemKey("ranger_quiver"))), QuiverTier.RANGER));
+
+    public static final RegistrySupplier<Item> HUNTER_QUIVER_UPGRADE = Util.registerItem(ITEMS, ITEM_REGISTRAR, Identifier.of("hunter_quiver_upgrade"), () ->
+        new Item(new Item.Properties().setId(Util.createItemKey("hunter_quiver_upgrade"))));
+
+    public static final RegistrySupplier<Item> RANGER_QUIVER_UPGRADE = Util.registerItem(ITEMS, ITEM_REGISTRAR, Identifier.of("ranger_quiver_upgrade"), () ->
+        new Item(new Item.Properties().setId(Util.createItemKey("ranger_quiver_upgrade"))));
 
     public static final RegistrySupplier<Item> IRON_BOW_ITEM = Util.registerItem(ITEMS, ITEM_REGISTRAR, Identifier.of("iron_bow"), () -> {
         return new IronBowItem(new Item.Properties().setId(Util.createItemKey("iron_bow")).durability(576));

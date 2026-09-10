@@ -1,6 +1,6 @@
 # Arrow Components
 
-Amethyst is currently a modular arrow mod built around a custom fletching table workflow.
+Sagittary is a modular arrow mod built around a custom fletching table workflow.
 
 Each arrow is assembled from three components:
 
@@ -24,6 +24,7 @@ The resulting arrow preserves its parts when fired from bows, crossbows, and dis
 - Flint: baseline arrow behavior
 - Amethyst: heavier hit with a brief stun-like slowness effect
 - Copper: chance to call down lightning on hit
+- Optional Spelunkery tips: Ruby fire burst, Sapphire ice burst, Topaz prospecting pulse, Bronze knockback pulse, Electrum chain damage, and Invar armor-piercing heavy shots
 
 ### Shafts
 

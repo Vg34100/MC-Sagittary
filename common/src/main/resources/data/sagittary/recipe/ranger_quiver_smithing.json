@@ -1,0 +1,7 @@
+{
+  "type": "minecraft:smithing_transform",
+  "template": "sagittary:ranger_quiver_upgrade",
+  "base": "sagittary:hunter_quiver",
+  "addition": "minecraft:diamond",
+  "result": { "id": "sagittary:ranger_quiver" }
+}

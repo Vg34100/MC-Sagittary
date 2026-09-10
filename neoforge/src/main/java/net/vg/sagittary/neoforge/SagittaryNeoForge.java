@@ -37,7 +37,10 @@ public final class SagittaryNeoForge {
     }
 
     private void clientSetup(FMLClientSetupEvent event) {
-        event.enqueueWork(SagittaryClient::initItemRenderers);
+        event.enqueueWork(() -> {
+            SagittaryClient.initItemRenderers();
+            SagittaryClient.initQuiverControls();
+        });
     }
     
     private void registerMenuScreens(RegisterMenuScreensEvent event) {

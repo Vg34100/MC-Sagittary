@@ -1,0 +1,17 @@
+{
+  "parent": "sagittary:root",
+  "display": {
+    "icon": { "id": "sagittary:component_arrow", "components": { "sagittary:arrow_parts": { "tip": "amethyst", "shaft": "stick", "fletching": "feather" }, "minecraft:custom_model_data": { "strings": ["16"] } } },
+    "title": { "translate": "advancement.sagittary.first_arrow.title" },
+    "description": { "translate": "advancement.sagittary.first_arrow.description" },
+    "frame": "task",
+    "show_toast": true,
+    "announce_to_chat": true
+  },
+  "criteria": {
+    "amethyst_arrow": {
+      "trigger": "minecraft:inventory_changed",
+      "conditions": { "items": [{ "items": "sagittary:component_arrow", "components": { "sagittary:arrow_parts": { "tip": "amethyst", "shaft": "stick", "fletching": "feather" } } }] }
+    }
+  }
+}

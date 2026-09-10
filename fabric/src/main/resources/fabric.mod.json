@@ -39,7 +39,9 @@
     "fabric-api": "*"
   },
   "suggests": {
-    "jei": "*"
+    "jei": "*",
+    "trinkets_updated": "*",
+    "spelunkery": "*"
   },
   "breaks": {
   }
