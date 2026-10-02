@@ -1,54 +1,85 @@
 # AGENTS.md
 
-This file defines the default agent workflow for Sagittary.
-
-Keep this file short. Detailed multiversion rules live under `docs/development/`.
+This file defines the default agent workflow for Sagittary and for maintenance of its multiversion build. Keep it short. Detailed procedures live under `docs/development/`.
 
 ## Priorities
 
 1. Preserve working behavior.
-2. Keep Fabric and NeoForge aligned where practical.
-3. Minimize context use.
-4. Prefer small, verified changes over broad rewrites.
-5. Do not overwrite unrelated user work.
-6. Keep one clear source of truth for each multiversion fact.
+2. Keep one clear source of truth for each version, loader, dependency, artifact, and publishing fact.
+3. Keep Fabric and NeoForge aligned where practical without hiding meaningful loader differences.
+4. Minimize context and validation cost.
+5. Prefer small, verified compatibility changes over broad rewrites.
+6. Never overwrite unrelated user work.
+7. Stop once the requested acceptance evidence exists.
 
-## Context Rules
+## Repository Model
 
-- Search first, read second, edit last.
-- Open only files related to the current error or feature.
-- Do not read all Java source files up front.
-- Do not dump full Gradle logs into the conversation.
-- Batch related compile fixes before rebuilding.
-- Reuse known build commands instead of deriving them again.
-- When a vanilla or loader API is uncertain, inspect the exact target version instead of guessing.
+Sagittary is a Stonecutter multiversion project with canonical `common/`, `fabric/`, and `neoforge/` source trees.
 
-## Repository Baseline
+The exact target matrix is discovered from:
 
-Sagittary currently uses:
+```text
+gradle/matrix/*.properties
+```
 
-- Architectury-style `common/`, `fabric/`, and `neoforge/` source trees.
-- Minecraft 26.1.2 as the current canonical source baseline.
-- Java 25 for the current 26.x build.
-- Fabric and NeoForge.
-- JEI integration.
-- Shadow packaging in the current single-version build.
+Do not hard-code the target count or supported versions into build logic when they can be derived from those files.
 
-The Stonecutter migration will replace the single-version project layout with explicit version/loader targets while keeping the canonical source trees as the main source inputs.
+Authoritative responsibilities:
+
+- `settings.gradle` — target registration and early platform selection.
+- `stonecutter.gradle` — active target and aggregate matrix tasks.
+- `build.matrix.gradle` — generic per-target Gradle configuration.
+- `gradle/matrix/*.properties` — target-specific version/dependency facts.
+- `gradle/publishing.properties` — public publishing identifiers and naming templates.
+- `common/`, `fabric/`, `neoforge/` — canonical maintained source.
+- small compatibility source/resource areas — only where a real version boundary requires them.
+
+Do not duplicate active dependency pins in root `gradle.properties` once a matrix property owns them.
+
+## Context Discipline
+
+Search first, read second, edit last.
+
+- Open only the files involved in the current failure or feature.
+- Do not read the entire Java tree or large build scripts without a reason.
+- Do not paste full Gradle logs when the useful error is a few lines.
+- Batch related fixes before rebuilding.
+- Prefer existing wrapper commands over re-deriving raw Gradle commands.
+- Treat historical migration notes as reference material, not default context.
+- Do not inspect the full `build-smart.py` unless it fails, selects the wrong plan, or must be changed for the requested task.
+
+For a new session, read only the document that matches the task:
+
+- migration / adding versions → `docs/development/multiversion-playbook.md`
+- deciding how to represent API drift → `docs/development/compatibility-policy.md`
+- deciding what to test → `docs/development/validation-and-release.md`
+- publishing → `docs/development/publishing.md`
+- new computer / missing tools → `docs/development/fresh-machine-setup.md`
+
+## Minecraft Source Investigation
+
+For Minecraft API changes, mappings, class or method availability, mixin targets, and version comparisons, prefer the `minecraft-dev` MCP.
+
+Escalation order:
+
+1. `minecraft-dev` MCP for Minecraft/version questions.
+2. project source and resolved dependency metadata.
+3. Gradle-cache/JAR inspection when the MCP cannot answer or when the exact resolved artifact must be verified.
+4. `javap`/manual bytecode archaeology only when narrower methods are insufficient.
+
+Do not spend a migration session rediscovering APIs manually when the static MCP can answer the question.
 
 ## Build Wrapper
 
-Use `build-smart.py` instead of raw Gradle for normal compile and matrix checks.
+Use `build-smart.py` for normal build, matrix, runtime, smoke, and publication workflows.
 
-Before relying on the adaptive wrapper in a newly migrated repo:
+Before trusting a newly migrated repository or unfamiliar machine:
 
 ```bash
 python build-smart.py compile --print-plan
 ```
 
-Check that the selected Gradle Java and task list are correct.
-
-Useful commands after the Stonecutter matrix exists:
+Useful commands include:
 
 ```bash
 python build-smart.py compile
@@ -59,91 +90,100 @@ python build-smart.py matrix:compile
 python build-smart.py matrix:package
 python build-smart.py matrix:server
 python build-smart.py matrix:servers-runtime
+python build-smart.py release-smoke
+python build-smart.py publish:plan
+python build-smart.py publish:preflight
 ```
 
-Use `smoke-server:<target>` for one dedicated-server runtime check.
+When `doctor`/`bootstrap` support is present, use it before debugging environment failures:
 
-Do not call a server smoke test successful unless the wrapper confirms the Minecraft server reached its ready `Done (...)!` milestone and stopped cleanly.
+```bash
+python build-smart.py doctor
+python build-smart.py bootstrap
+```
 
-## Multiversion Docs
+See `fresh-machine-setup.md` for the contract these commands should satisfy.
 
-For Stonecutter work, read only the docs needed for the task:
+## Compatibility Rule
 
-- `docs/development/stonecutter-migration.md`
-- `docs/development/compatibility-policy.md`
-- `docs/development/stonecutter-port-acceptance-checklist.md`
+Represent version drift using the smallest mechanism that keeps behavior visible:
 
-Historical port notes are reference material only. Do not load them by default.
+1. unchanged shared source;
+2. native Stonecutter condition for a small local difference;
+3. narrow deterministic replacement for a truly mechanical rename;
+4. parsed resource/data transform for serialized-format drift;
+5. separate compatibility implementation when behavior or lifecycle materially differs.
 
-## Source Compatibility Rule
+Do not create a large overlay tree in advance.
 
-Do not use large Gradle/Groovy string-rewrite systems to synthesize Java as the default approach.
+Do not turn `build.matrix.gradle` into a Java source generator or broad regex-rewrite engine.
 
-For source differences:
-
-1. Use unchanged shared source when possible.
-2. Use native Stonecutter source conditions for small, local differences.
-3. Use a mechanical replacement only when the replacement is narrow and deterministic.
-4. Use a separate compatibility implementation only when the old and new code are materially different.
-5. Do not create a large legacy overlay tree before a real compile/runtime difference proves that it is needed.
-
-See `docs/development/compatibility-policy.md`.
-
-## Build Configuration Rule
-
-After migration:
-
-- `settings.gradle` owns the registered Stonecutter targets.
-- `stonecutter.gradle` owns aggregate matrix tasks.
-- `build.matrix.gradle` owns generic per-target Gradle configuration.
-- `gradle/matrix/*.properties` owns target dependency/version pins.
-- Java compatibility differences should live with Java source or in a small compatibility source area, not as large Java strings inside `build.matrix.gradle`.
-- Resource/data compatibility transforms may live in build logic when they are deterministic and scoped.
-
-Do not duplicate dependency pins in root `gradle.properties` once matrix property files become authoritative.
+See `compatibility-policy.md`.
 
 ## Loader Rule
 
-Keep loader-specific behavior in loader source when the APIs differ.
+Minecraft-version differences and loader differences are separate axes.
 
-Check Fabric and NeoForge separately for bootstrap, client registration, render hooks, event registration, networking, metadata, and optional mod integration.
+Keep loader-native behavior in loader source when practical. Check Fabric and NeoForge independently for bootstrap, client registration, rendering, networking, metadata, events, mixins, and optional integrations.
 
-Do not force a shared Architectury abstraction when loader-native behavior is meaningfully different.
+Do not force shared abstraction when the loaders genuinely have different lifecycle or registration APIs.
 
 ## Mixins
 
-Treat mixins as version-sensitive runtime code.
+Treat mixins as runtime-sensitive compatibility code.
 
-For every affected target:
+For an affected target, verify:
 
-- verify the target class exists;
-- verify the target method name and descriptor;
-- verify the injection point;
-- keep loader-only mixins in loader-specific configs;
-- remove or disable a mixin on versions where its target does not exist.
+- target class;
+- method name and descriptor;
+- injection point;
+- loader/version ownership;
+- omission when the target behavior does not exist.
 
-Compilation alone is not enough evidence for a mixin.
+Compilation is not proof that a mixin applies correctly.
 
-## Sagittary High-Risk Areas
+## Optional Integrations
 
-During this migration, pay extra attention to:
+Optional integrations must remain optional for end users.
 
-- `FletchingTableMenu` / `FletchingTableScreen`
-- projectile and arrow entity APIs
-- bow/crossbow/quiver item APIs
-- tooltip and client rendering
-- bundle accessors and bundle-related mixins
-- networking payloads
-- JEI integration
-- Fabric data generation
-- optional Trinkets/Spelunkery hooks
-- loader-specific render/client registration
+Development runtimes may attach supported optional mods, but release artifacts must not accidentally bundle them or turn them into required dependencies.
 
-These are inspection priorities, not instructions to rewrite them preemptively.
+When compatibility with an optional mod is changed, validate both:
 
-## Dirty Worktree
+- integration present;
+- integration absent.
 
-Assume the repository may contain user-owned edits.
+A local sibling mod may be auto-detected, but its absence must not make a fresh clone fail unless that repository is explicitly required for the requested task.
+
+## Validation and Stopping Rule
+
+Use the smallest validation set that matches the change.
+
+- common Java change → affected generation on both loaders;
+- Fabric-only change → affected Fabric target(s);
+- NeoForge-only change → affected NeoForge target(s);
+- resource transform → package + processed-resource inspection + relevant runtime/visual check;
+- mixin change → runtime on every distinct target shape touched;
+- build-matrix change → matrix compile/package and artifact verification;
+- publishing change → publication tests and platform dry-runs, not extra gameplay runs.
+
+Full release acceptance uses `validation-and-release.md`.
+
+**Stopping rule:** once the requested acceptance evidence is green, stop. Do not repeat full-matrix operations, production clients, or dry-runs solely for reassurance. Continue only when a required criterion is unresolved or a new deterministic failure appears.
+
+## Feature Development After Migration
+
+For new features, do not develop twelve targets in parallel.
+
+Default workflow:
+
+1. implement and deeply test on one current canonical target, normally the current/highest Fabric target unless the task requires another target;
+2. prove the feature there;
+3. port the proven behavior across the matrix using the compatibility policy;
+4. run narrow sentinel checks while porting;
+5. run full release gates only when preparing a release.
+
+## Dirty Worktree and Commits
 
 Before editing or committing:
 
@@ -151,45 +191,18 @@ Before editing or committing:
 git status --short
 ```
 
-Never revert unrelated changes.
+Never revert unrelated user changes. Never stage generated builds, runtime directories, caches, local `.env`, downloaded tools, or unrelated assets.
 
-Do not stage generated output, run directories, caches, or unrelated asset edits.
-
-## Validation Rule
-
-Use the smallest validation set that matches the change.
-
-- common Java change -> affected version generation on both loaders
-- Fabric-only change -> Fabric targets only
-- NeoForge-only change -> NeoForge targets only
-- resource transform -> package + resource/gameplay check
-- mixin change -> runtime check on affected target(s)
-- build-matrix change -> matrix compile/package/launch-setup checks
-
-Do not rerun the full runtime matrix after every small edit.
-
-## Commit Rule
-
-Prefer one coherent change per commit.
-
-Examples:
-
-- `build: add stonecutter target matrix`
-- `build: parameterize loader metadata`
-- `fix: support legacy quiver api`
-- `fix: split legacy fletching screen behavior`
-- `docs: record sagittary multiversion rules`
-
-Do not make commits unless the user asked for them.
+Do not commit, push, tag, or publish unless the user explicitly authorized those actions.
 
 ## Closeout
 
-At the end of a work session, report:
+Report only:
 
 - what changed;
-- what target(s) were checked;
+- which targets/gates were checked;
 - what passed;
-- what was not tested;
-- any new compatibility rule that should be recorded.
+- what remains untested or manual;
+- any new reusable compatibility rule.
 
-Keep the report short. Do not paste long build logs.
+Keep raw logs out of the closeout.

@@ -23,7 +23,7 @@ def windows_path(path):
     """Translate a native Windows path only when running under WSL."""
     if os.name == 'nt':
         return Path(path)
-    return Path(subprocess.check_output(['wslpath', '-u', path], text=True, timeout=10).strip())
+    return Path(subprocess.check_output(['wslpath', '-u', path], text=True, stderr=subprocess.PIPE, timeout=10).strip())
 
 
 def neoforge_paths(target, token):
@@ -36,10 +36,28 @@ def neoforge_paths(target, token):
         appdata, temporary = subprocess.check_output([
             powershell, '-NoProfile', '-Command',
             '[Console]::OutputEncoding = [Text.UTF8Encoding]::new(); $env:LOCALAPPDATA; [IO.Path]::GetTempPath()'
-        ], text=True, encoding='utf-8', timeout=20).splitlines()
+        ], text=True, encoding='utf-8', stderr=subprocess.PIPE, timeout=20).splitlines()
     root = ntpath.join(temporary, 'sagittary-release-smoke', target, token)
     executable = windows_path(ntpath.join(appdata, 'Sagittary', 'tools', 'portablemc', PORTABLEMC_VERSION, 'portablemc.exe'))
     return windows_path(ntpath.join(root, 'client')), root, executable
+
+
+def portablemc_binary(archive):
+    """Read-only verification shared by smoke, doctor and bootstrap."""
+    payload = archive.read_bytes()
+    if hashlib.sha256(payload).hexdigest() != PORTABLEMC_SHA256:
+        raise RuntimeError(f'PortableMC cached archive checksum mismatch: {archive}')
+    with ZipFile(io.BytesIO(payload)) as zip_file:
+        return zip_file.read('portablemc.exe')
+
+
+def verify_portablemc(executable):
+    binary = portablemc_binary(executable.with_name('portablemc.zip'))
+    if executable.read_bytes() != binary:
+        raise RuntimeError(f'PortableMC cached executable differs from verified archive: {executable}')
+    version = subprocess.check_output([str(executable), '--version'], text=True, stderr=subprocess.PIPE, timeout=15)
+    if not version.startswith(f'portablemc {PORTABLEMC_VERSION}\n'):
+        raise RuntimeError('Unexpected PortableMC version (expected ' + PORTABLEMC_VERSION + ')')
 
 
 def acquire_portablemc(executable):
@@ -54,20 +72,12 @@ def acquire_portablemc(executable):
         if hashlib.sha256(payload).hexdigest() != PORTABLEMC_SHA256:
             raise RuntimeError('PortableMC download checksum mismatch')
         archive.write_bytes(payload)
-    payload = archive.read_bytes()
-    if hashlib.sha256(payload).hexdigest() != PORTABLEMC_SHA256:
-        raise RuntimeError(f'PortableMC cached archive checksum mismatch: {archive}')
-    with ZipFile(io.BytesIO(payload)) as zip_file:
-        binary = zip_file.read('portablemc.exe')
+    binary = portablemc_binary(archive)
     if not executable.is_file():
         executable.write_bytes(binary)
-    if executable.read_bytes() != binary:
-        raise RuntimeError(f'PortableMC cached executable differs from verified archive: {executable}')
-    if os.name != 'nt':
+    if os.name != 'nt' and not os.access(executable, os.X_OK):
         executable.chmod(executable.stat().st_mode | 0o111)
-    version = subprocess.check_output([str(executable), '--version'], text=True, timeout=15)
-    if not version.startswith(f'portablemc {PORTABLEMC_VERSION}\n'):
-        raise RuntimeError(f'Unexpected PortableMC version: {version}')
+    verify_portablemc(executable)
     print(f'PortableMC {PORTABLEMC_VERSION}: verified cached executable {executable}', flush=True)
 
 

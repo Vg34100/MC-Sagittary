@@ -122,3 +122,6 @@ versions/
 
 # Local secrets
 .env
+
+# Python wrapper/setup checks
+__pycache__/

@@ -5,6 +5,8 @@ Reduces verbose output to only essential error information.
 Works with any Architectury/Fabric/NeoForge mod project (single-target or Stonecutter matrix).
 
 Usage:
+    python build-smart.py doctor                  # read-only prerequisite/readiness checks
+    python build-smart.py bootstrap               # safe setup, then doctor; never installs JDKs
     python build-smart.py                         # compile only (fast check)
     python build-smart.py compile                 # compile every target / loader
     python build-smart.py compile:<selector>      # compile selected targets (see selectors)
@@ -52,6 +54,7 @@ import platform
 import queue
 import re
 import runpy
+import shutil
 import signal
 import subprocess
 import sys
@@ -137,11 +140,18 @@ WRAPPER_FLAGS = ("--print-plan",)
 def find_project_root():
     """Find project root by looking for gradlew or settings.gradle"""
     current = Path.cwd().resolve()
-    while current != current.parent:
+    while True:
         if any((current / name).exists() for name in
                ("gradlew", "gradlew.bat", "settings.gradle", "settings.gradle.kts")):
             return current
+        if current == current.parent:
+            break
         current = current.parent
+    # Also support invoking this repository's wrapper by absolute path from
+    # outside the worktree, without guessing the caller's unrelated directory.
+    script_root = Path(__file__).resolve().parent
+    if (script_root / "gradlew").is_file() or (script_root / "gradlew.bat").is_file():
+        return script_root
     return Path.cwd().resolve()
 
 
@@ -324,7 +334,7 @@ def windows_to_wsl(path_text):
     return Path("/mnt") / match.group(1).lower() / match.group(2).replace("\\", "/")
 
 
-def candidate_jdks():
+def candidate_jdks(root=None):
     """Locally installed JDK homes runnable on this OS."""
     home = Path.home()
     gradle_home = Path(os.environ.get("GRADLE_USER_HOME", home / ".gradle"))
@@ -341,8 +351,20 @@ def candidate_jdks():
                   Path("/Library/Java/JavaVirtualMachines")]
 
     homes = []
-    if os.environ.get("JAVA_HOME"):
-        homes.append(Path(os.environ["JAVA_HOME"]))
+    for key in ("JAVA_HOME", "BUILD_SMART_JAVA_HOME"):
+        if os.environ.get(key):
+            homes.append(Path(os.environ[key]))
+    on_path = shutil.which("java")
+    if on_path:
+        homes.append(Path(on_path).resolve().parent.parent)
+    # Reuse Gradle's explicit toolchain settings, including nonstandard JDK locations.
+    props = read_properties(gradle_home / "gradle.properties")
+    if root is not None:
+        props = {**read_properties(root / "gradle.properties"), **props}
+    homes += [Path(p.strip()) for p in props.get("org.gradle.java.installations.paths", "").split(",") if p.strip()]
+    for key in props.get("org.gradle.java.installations.fromEnv", "").split(","):
+        if os.environ.get(key.strip()):
+            homes.append(Path(os.environ[key.strip()]))
     for root in roots:
         try:
             children = list(root.iterdir())
@@ -393,8 +415,23 @@ def select_gradle_java(project, args):
         return forced, f"Gradle JVM: {forced} (BUILD_SMART_JAVA_HOME)", False
 
     configured, source = configured_java_home(project.root)
-    if not configured or java_binary(configured).exists():
+    if configured and java_binary(configured).exists():
         return None, None, False
+
+    if not configured:
+        # A fresh shell may expose only legacy Java. Do not silently run current
+        # Loom on it; use the same installed-JDK discovery as the setup checks.
+        required = max((t.java for t in project.targets if t.java), default=0)
+        on_path = shutil.which("java")
+        launch_home = os.environ.get("JAVA_HOME") or (str(Path(on_path).resolve().parent.parent) if on_path else None)
+        if launch_home and java_binary(launch_home).exists() and (jdk_major(launch_home) or 0) >= required:
+            return None, None, False
+        candidates = sorted((major, home) for major, home in candidate_jdks(project.root) if major >= required)
+        if candidates:
+            chosen = candidates[0][1]
+            return str(chosen), f"Gradle JVM: {chosen} (matrix requires Java {required}+)", False
+        return None, (f"Java {required}+ JDK missing for Gradle/current targets; install that JDK and set "
+                      "BUILD_SMART_JAVA_HOME to its native JDK home. Bootstrap does not install Java."), True
 
     # Configured JVM is unusable here (typically a Windows path seen from WSL/Linux).
     required = None
@@ -406,7 +443,7 @@ def select_gradle_java(project, args):
         known = [t.java for t in project.targets if t.java]
         required = max(known) if known else None
 
-    candidates = candidate_jdks()
+    candidates = candidate_jdks(project.root)
     if required is not None:
         exact = sorted(home for major, home in candidates if major == required)
         newer = sorted((major, home) for major, home in candidates if major > required)
@@ -816,13 +853,27 @@ def plan(project, task_arg):
 
 def main(argv=None):
     argv = list(sys.argv[1:] if argv is None else argv)
+    if argv and argv[0] in ("--help", "-h", "help"):
+        print(__doc__)
+        return 0
     print_plan = "--print-plan" in argv
     argv = [arg for arg in argv if arg not in WRAPPER_FLAGS]
 
     task_arg = argv[0] if argv else "compile"
     extra_args = argv[1:]
 
-    project = Project(find_project_root())
+    root = find_project_root()
+    if task_arg in ("doctor", "bootstrap"):
+        if extra_args or print_plan:
+            print("ERROR: doctor/bootstrap take no flags; doctor never runs Gradle or Minecraft.")
+            return 2
+        if not (root / "scripts/setup-environment.py").is_file():
+            print("FAIL Sagittary setup helper missing; restore scripts/setup-environment.py in the clone.")
+            return 2
+        setup = runpy.run_path(str(root / "scripts/setup-environment.py"))
+        return setup["run"](root, task_arg, globals())
+
+    project = Project(root)
     if task_arg.startswith("publish:"):
         try:
             publishing = runpy.run_path(str(project.root / "scripts/publish-release.py"))

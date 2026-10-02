@@ -1,54 +1,210 @@
-# Publishing Sagittary
+# Publishing
 
-No command publishes just because credentials exist. Start with:
+This document defines the release-publication workflow for the Stonecutter matrix.
+
+Publishing is deliberately separate from validation. The presence of credentials must never cause an upload by itself.
+
+## Sources of Truth
+
+- `gradle/matrix/*.properties` — target Minecraft/loader/dependency facts.
+- `gradle.properties` — authoritative mod version if that is where the repository currently owns it.
+- `gradle/publishing.properties` — public project IDs, naming templates, release type, dependency mappings, tag/title templates.
+- `docs/wiki/release-notes.md` — human-authored version-specific release notes.
+- `scripts/verify-matrix-artifacts.py` — exact installable artifact verification.
+- `build/publishing/` — generated manifests/dry-run output/receipt journal; ignored build output.
+
+Do not hard-code a version-specific release plan in documentation.
+
+## Local Credentials
+
+Repository root:
+
+```text
+.env
+```
+
+Canonical keys:
+
+```dotenv
+MODRINTH_TOKEN=...
+CURSEFORGE_TOKEN=...
+```
+
+`.env` must be ignored and untracked.
+
+A committed `.env.example` may contain empty keys only.
+
+Rules:
+
+- never print token values;
+- never put tokens in command-line arguments;
+- never place them in generated public manifests;
+- explicit environment values may override `.env`;
+- dry-runs remove/avoid real credentials;
+- a tracked `.env` is a hard failure for credential loading.
+
+GitHub Release creation uses GitHub Actions' built-in `GITHUB_TOKEN`; a local GitHub CLI or personal GitHub PAT is not required for the normal tag workflow.
+
+## Platform Model
+
+### Modrinth
+
+Use the pinned Minotaur plugin.
+
+Publish one Modrinth version record per matrix target.
+
+Each record contains exactly one corresponding installable JAR and exact:
+
+- Minecraft version;
+- loader;
+- visible version name;
+- machine-facing version number;
+- release type;
+- target-aware dependency declarations.
+
+Visible naming is configured from a template such as:
+
+```text
+[{loader_name}] {mod_name} {mod_version} ({minecraft_version})
+```
+
+A machine-facing number should include enough target information to avoid ambiguity, for example:
+
+```text
+{mod_version}-{minecraft_version}-{loader}
+```
+
+Preserve historical records; do not rename old versions merely to match the current convention.
+
+### CurseForge
+
+Use the pinned CurseForgeGradle plugin.
+
+Publish one file per matrix target with exact:
+
+- installable JAR;
+- Minecraft version;
+- Fabric/NeoForge loader;
+- Java generation where CurseForge metadata supports it;
+- Client/Server environment;
+- release type;
+- target-aware required/optional relations.
+
+Disable unsafe automatic version detection when explicit target metadata is available.
+
+If CurseForge does not recognize a requested target version, stop rather than silently labeling it as another version.
+
+### GitHub
+
+One GitHub Release per mod version.
+
+Attach exactly the installable matrix JARs.
+
+Do not attach:
+
+- dev JARs;
+- source JARs;
+- manifests;
+- logs;
+- caches;
+- smoke-runtime files.
+
+The pushed release tag is:
+
+```text
+v<mod_version>
+```
+
+unless `gradle/publishing.properties` defines another convention.
+
+## Dependency Metadata
+
+Do not guess platform dependency projects.
+
+Resolve and record the correct Modrinth IDs and CurseForge slugs/project relations.
+
+Public metadata must reflect actual end-user requirements.
+
+Rules:
+
+- required runtime dependencies → required;
+- optional integrations → optional;
+- loader-only dependencies only on that loader;
+- provider not supported on a target → no relation;
+- transitive implementation dependencies do not become direct public dependencies unless users independently need them.
+
+When a repository has a developer-owned fork with a similar name to another public project, pin the intended project explicitly.
+
+## Release Notes
+
+Maintain one human-authored version section.
+
+Do not generate release notes from build output.
+
+The same version section should feed:
+
+- Modrinth changelog;
+- CurseForge changelog;
+- GitHub Release body.
+
+A missing or empty section for the current version should fail before real publication.
+
+## Safe Planning and Dry-Run Commands
+
+Start with:
 
 ```bash
 python build-smart.py publish:plan
 python build-smart.py publish:modrinth-dry-run
 python build-smart.py publish:curseforge-dry-run
 python build-smart.py publish:all-dry-run
+```
+
+`publish:plan` should be side-effect-free and show, per target:
+
+- target;
+- exact artifact;
+- Minecraft version;
+- loader;
+- visible name;
+- machine-facing version;
+- release type;
+- dependency declarations;
+- CurseForge tags where applicable.
+
+A platform dry-run must verify the exact selected artifact, ideally including SHA-256.
+
+Dry-run success is configuration evidence, not publication.
+
+## Publication Preflight
+
+After the version bump and release notes are final:
+
+```bash
 python build-smart.py publish:preflight
 ```
 
-Preflight packages the matrix, verifies all installable JARs, runs the existing
-four-target `release-smoke`, then validates all Minotaur and CurseForgeGradle debug payloads. It must
-print `PUBLISH PREFLIGHT PASS`. GUI prerequisites apply only to local preflight;
-CI packages/verifies without client launches.
+Expected sequence:
 
-## Release facts and credentials
+```text
+matrix package
+→ artifact verification
+→ packaged-JAR release-smoke
+→ Modrinth dry-run
+→ CurseForge dry-run
+```
 
-- Matrix nodes/pins remain authoritative in `gradle/matrix/*.properties`.
-- `gradle/publishing.properties` owns public project IDs, names, release type,
-  and the version-specific human-edited section of `docs/wiki/release-notes.md`.
-  A missing/empty section fails clearly. Only that section feeds all three release bodies.
-- Minotaur is pinned to **2.10.0**. Each target uploads exactly its verified
-  installable JAR (`remapJar` output on legacy), no additional/source/dev files.
-- Visible names: `[Fabric] Sagittary 2.1.0 (26.2)` and
-  `[NeoForge] Sagittary 2.1.0 (26.2)`. Internal Modrinth numbers:
-  `2.1.0-26.2-fabric` / `2.1.0-26.2-neoforge`.
-- Modrinth: [sagittary](https://modrinth.com/mod/sagittary), ID `kh5dbjUL`.
-  Its optional Spelunkery integration is
-  [The Spelunker Update](https://modrinth.com/mod/spelunker-update), ID `RLyGc4q3`.
-- CurseForgeGradle is pinned to **1.3.33**; project
-  [sagittary](https://www.curseforge.com/minecraft/mc-mods/sagittary), ID `1587941`.
-  Each independent file explicitly declares the exact Minecraft version,
-  Fabric/NeoForge, Java 21/25, and both Client and Server. Automatic version
-  detection is disabled. Optional Spelunkery points to `the-spelunker-update`
-  (project `1597427`), not the unrelated original Spelunkery project.
-- Required dependencies come from packaged loader metadata; JEI is the optional
-  matrix/compile-only integration. Supported Trinkets providers stay optional;
-  legacy NeoForge has none. Trinkets' own Cardinal Components dependencies are
-  **not** direct Sagittary dependencies.
-- Create ignored root `.env` from `.env.example`, or explicitly set
-  `MODRINTH_TOKEN` and `CURSEFORGE_TOKEN` in your environment. Only real publishing opens `.env`, only
-  these two keys are accepted, and explicit environment values win. Values are
-  passed only through the child environment, never CLI/manifests/log output.
-  Debug runs remove the credential. A tracked `.env` blocks credential loading.
-- Generated public manifest/dry-run log: `build/publishing/`. GitHub asset
-  collection contains exactly the verified matrix JARs plus workflow-only
-  manifest/notes; only the JARs are attached to the GitHub Release.
+Success must end with:
 
-## Explicit real publication (not part of validation)
+```text
+PUBLISH PREFLIGHT PASS
+```
+
+Run this full preflight once for the final release revision.
+
+## Real Publication
+
+Real uploads require explicit confirmation:
 
 ```bash
 python build-smart.py publish:modrinth --confirm
@@ -56,47 +212,121 @@ python build-smart.py publish:curseforge --confirm
 python build-smart.py publish:all --confirm
 ```
 
-Without `--confirm`, the wrapper refuses. The Gradle task also defaults to debug
-mode; all real tasks depend on an all-artifact and public-version duplicate gate.
-Uploads are sequential (Modrinth, then CurseForge) and stop on failure. The unified
-command validates both credentials, duplicate guards, and official CurseForge
-game tags before the first upload. Successfully created remote IDs/URLs are
-reported immediately and saved to the public `build/publishing/<version>-uploads.jsonl`
-receipt journal, even on partial failure; there is no destructive rollback.
-Retrying with identical verified artifacts skips journaled successes. Changed
-bytes or unjournaled remote duplicates are refused. Keep the journal until release
-completion, including while CurseForge files are still scanning. CurseForge's
-upload API has no file-list endpoint, so indexed duplicates are checked using
-public CFWidget data; API receipts cover not-yet-indexed uploads.
-Do not use `--continue`, parallel uploads, debug logging, or build scans.
+Without `--confirm`, refuse.
 
-**Existing 2.0.1 versions already cover 26.1.2 Fabric and NeoForge under the old
-bare internal number.** Real publication catches those equivalents as well as
-new target-qualified numbers. Choose a new mod version and author its matching
-release-notes section before a new complete release; do not duplicate 2.0.1.
+The unified release path should:
+
+1. validate both credentials before the first upload;
+2. verify all intended artifacts;
+3. run duplicate/equivalent-version guards;
+4. validate platform metadata;
+5. upload sequentially;
+6. report every successful remote ID/URL immediately;
+7. append a receipt to the local publication journal;
+8. stop visibly on failure;
+9. never silently claim total success after partial success.
+
+Do not perform destructive rollback of successful remote uploads automatically.
+
+## Receipt Journal and Resume Safety
+
+Use a generated journal such as:
+
+```text
+build/publishing/<version>-uploads.jsonl
+```
+
+Record enough information to prove:
+
+- platform;
+- target;
+- local artifact path;
+- artifact hash;
+- remote ID;
+- remote URL when available.
+
+On retry:
+
+- identical, journaled successful uploads may be skipped safely;
+- changed artifact bytes must not reuse an old receipt;
+- an unjournaled remote duplicate should stop for review;
+- do not depend only on eventual public indexing when the upload API already returned a success receipt.
+
+Keep the journal until the release is complete and platform processing/scanning has settled.
+
+## Recommended Release Order
+
+For a real release:
+
+```text
+1. bump version
+2. author release notes
+3. publish:plan
+4. one publish:preflight
+5. git diff/status review
+6. commit release revision
+7. push release revision
+8. publish:all --confirm
+9. verify all matrix targets on Modrinth and CurseForge
+10. create v<version> tag
+11. push tag
+12. GitHub Actions builds/verifies the tag and creates the GitHub Release
+```
+
+Do not push the release tag before the external platform publication succeeds unless the repository intentionally uses a different release policy.
+
+Do not force-move an unexpected existing tag.
 
 ## GitHub Actions
 
-`.github/workflows/release.yml` supports manual `workflow_dispatch` and pushed
-`v*` release tags. Manual defaults build/verify all targets and upload a workflow artifact; they create
-no GitHub Release and needs no Modrinth secret. It installs Java 21 and 25 on a
-clean Ubuntu runner and uses the existing wrapper/verification.
+The tag-triggered path should be reproducible on a clean hosted runner and should not depend on local `.env`.
 
-After local preflight passes on the intended committed revision, dispatch:
+It should:
 
-- `create_draft=true`, `local_preflight_passed=true`: one draft `v<mod_version>`
-  release, titled `Sagittary <mod_version>`, with all installable matrix JARs.
-- Additionally `publish_modrinth=true`: real, sequential target uploads after
-  the draft exists. Configure the repository Actions secret `MODRINTH_TOKEN`
-  (Modrinth token needs `CREATE_VERSION` scope). GitHub-only paths need no token.
-- Additionally `publish_github=true`: make the draft public **only after** all
-  requested stages succeed. All mutating inputs default to false.
+```text
+checkout tagged commit
+→ install required Java generations
+→ package matrix
+→ artifact verification
+→ collect exactly the installable JARs
+→ create GitHub Release
+→ attach exactly those JARs
+```
 
-GitHub release creation uses the automatic `GITHUB_TOKEN` (`contents: write`
-only in the release job), not a PAT. Public releases/different-commit tags and
-unexpected draft assets are not overwritten. A pushed tag must match the
-authoritative mod version. The tag path builds/verifies the tagged commit,
-stages exactly the matrix JARs in one draft, then makes that GitHub Release public.
-It does **not** republish Modrinth/CurseForge and needs no external platform secret.
-Publish those locally first, then push the release tag. No project-description
-synchronization or machine-specific paths are configured.
+The GitHub job needs only the minimum permission required for release creation:
+
+```yaml
+permissions:
+  contents: write
+```
+
+The normal tag path should not republish Modrinth/CurseForge if those platforms are intentionally published locally first.
+
+Manual `workflow_dispatch` may remain for build-only or draft-release workflows. All mutating manual inputs should default to false.
+
+## Failure Behavior
+
+If a real upload fails after earlier targets succeeded:
+
+- stop;
+- report successful targets and IDs;
+- preserve the receipt journal;
+- fix only the deterministic blocker;
+- resume safely;
+- do not rerun unrelated production smoke/preflight unless the fix changed release artifacts or invalidated previous evidence.
+
+If the only problem is platform indexing/moderation delay after a successful API response, do not re-upload.
+
+## Secret Hygiene
+
+Never:
+
+- commit `.env`;
+- echo tokens;
+- pass tokens as CLI arguments;
+- include tokens in Gradle `--info`/`--debug` output;
+- store tokens in build manifests;
+- use build scans for real publication;
+- paste tokens into agent prompts.
+
+Use environment inheritance for the child publishing process.
