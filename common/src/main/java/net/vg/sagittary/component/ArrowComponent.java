@@ -78,7 +78,12 @@ public enum ArrowComponent {
     }
     
     public Item getCraftingItem() {
-        return craftingItem != null ? craftingItem : BuiltInRegistries.ITEM.getValue(optionalCraftingItemId);
+        if (craftingItem != null) return craftingItem;
+        //? if >=26.1 {
+        return BuiltInRegistries.ITEM.getValue(optionalCraftingItemId);
+        //? } else {
+        /*return BuiltInRegistries.ITEM.get(optionalCraftingItemId);
+        *///? }
     }
     
     public float getDamageModifier() {

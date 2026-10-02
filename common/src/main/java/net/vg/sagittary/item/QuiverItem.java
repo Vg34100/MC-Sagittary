@@ -18,10 +18,14 @@ import net.minecraft.world.inventory.tooltip.TooltipComponent;
 import net.vg.sagittary.client.QuiverTooltip;
 import net.minecraft.world.item.*;
 import net.minecraft.world.item.component.BundleContents;
+//? if >=26.1 {
 import net.minecraft.world.item.component.TooltipDisplay;
+//? }
 import net.minecraft.world.level.Level;
 import net.vg.sagittary.mixin.BundleContentsMutableAccessor;
 import net.vg.sagittary.compat.trinkets.TrinketsCompat;
+import net.vg.sagittary.registry.ObjectRegistry;
+import net.vg.sagittary.component.QuiverSelection;
 import org.apache.commons.lang3.math.Fraction;
 
 import java.util.ArrayList;
@@ -44,11 +48,25 @@ public class QuiverItem extends Item {
     private final QuiverTier tier;
 
     public QuiverItem(Properties properties, QuiverTier tier) {
-        super(properties.stacksTo(1).enchantable(10).component(DataComponents.BUNDLE_CONTENTS, BundleContents.EMPTY));
+        super(quiverProperties(properties));
         this.tier = tier;
     }
 
     public QuiverTier getTier() { return tier; }
+
+    private static Properties quiverProperties(Properties properties) {
+        properties.stacksTo(1).component(DataComponents.BUNDLE_CONTENTS, BundleContents.EMPTY);
+        //? if >=26.1 {
+        return properties.enchantable(10);
+        //? } else {
+        /*return properties;
+        *///? }
+    }
+
+    //? if <26.1 {
+    /*@Override
+    public int getEnchantmentValue() { return 10; }
+    *///? }
 
     @Override
     public boolean overrideStackedOnOther(ItemStack quiver, Slot slot, ClickAction action, Player player) {
@@ -64,15 +82,13 @@ public class QuiverItem extends Item {
         ItemStack stackInSlot = slot.getItem();
 
         if (stackInSlot.isEmpty()) {
-            // Remove item from quiver and place in slot
-            BundleContents.Mutable mutable = new BundleContents.Mutable(contents);
-            ItemStack removed = mutable.removeOne();
-            if (removed != null) {
+            List<ItemStack> items = copyItems(contents);
+            int selected = getSelectedIndex(quiver);
+            if (selected >= 0) {
+                ItemStack removed = items.remove(selected);
                 ItemStack result = slot.safeInsert(removed);
-                if (!result.isEmpty()) {
-                    insertArrowDirect(mutable, result);
-                }
-                quiver.set(DataComponents.BUNDLE_CONTENTS, mutable.toImmutable());
+                if (!result.isEmpty()) items.add(selected, result);
+                updateContents(quiver, items, selected);
                 this.playRemoveSound(player);
             }
         } else if (isValidArrow(stackInSlot)) {
@@ -83,8 +99,7 @@ public class QuiverItem extends Item {
 
             if (toInsert > 0) {
                 ItemStack toAdd = stackInSlot.split(toInsert);
-                BundleContents newContents = addArrowsToContents(contents, toAdd);
-                quiver.set(DataComponents.BUNDLE_CONTENTS, newContents);
+                addArrowsToContents(quiver, toAdd);
                 this.playInsertSound(player);
             }
         }
@@ -104,13 +119,13 @@ public class QuiverItem extends Item {
         }
 
         if (other.isEmpty()) {
-            // Remove item from quiver
-            BundleContents.Mutable mutable = new BundleContents.Mutable(contents);
-            ItemStack removed = mutable.removeOne();
-            if (removed != null) {
+            List<ItemStack> items = copyItems(contents);
+            int selected = getSelectedIndex(quiver);
+            if (selected >= 0) {
+                ItemStack removed = items.remove(selected);
                 this.playRemoveSound(player);
                 access.set(removed);
-                quiver.set(DataComponents.BUNDLE_CONTENTS, mutable.toImmutable());
+                updateContents(quiver, items, selected);
             }
         } else if (isValidArrow(other)) {
             // Add arrow to quiver using direct insertion (bypasses weight limit)
@@ -121,8 +136,7 @@ public class QuiverItem extends Item {
             if (toInsert > 0) {
                 ItemStack toAdd = other.copyWithCount(toInsert);
                 other.shrink(toInsert);
-                BundleContents newContents = addArrowsToContents(contents, toAdd);
-                quiver.set(DataComponents.BUNDLE_CONTENTS, newContents);
+                addArrowsToContents(quiver, toAdd);
                 this.playInsertSound(player);
             }
         }
@@ -134,10 +148,8 @@ public class QuiverItem extends Item {
      * Add arrows to contents, bypassing weight limits. Merges with existing stacks of same type,
      * respecting max stack size (64). Creates new stacks if needed.
      */
-    private static BundleContents addArrowsToContents(BundleContents contents, ItemStack toAdd) {
-        List<ItemStack> items = new ArrayList<>();
-        contents.itemCopyStream().forEach(items::add);
-        int selectedIndex = contents.getSelectedItemIndex();
+    private static void addArrowsToContents(ItemStack quiver, ItemStack toAdd) {
+        List<ItemStack> items = copyItems(quiver.getOrDefault(DataComponents.BUNDLE_CONTENTS, BundleContents.EMPTY));
 
         int remaining = toAdd.getCount();
         int maxStackSize = toAdd.getMaxStackSize();
@@ -157,30 +169,16 @@ public class QuiverItem extends Item {
         }
 
         // Add remaining as new stacks
-        int insertedStacks = 0;
         while (remaining > 0) {
             int stackSize = Math.min(remaining, maxStackSize);
             items.add(0, toAdd.copyWithCount(stackSize)); // Add to front
             remaining -= stackSize;
-            insertedStacks++;
         }
-
-        // New stacks are added before the existing contents, so retain the selected
-        // arrow by moving its index forward by the number of inserted stacks.
-        if (selectedIndex >= 0) selectedIndex += insertedStacks;
-        return buildContentsFromList(items, selectedIndex);
+        updateContents(quiver, items, 0);
     }
 
     /**
      * Build BundleContents from a list of items, bypassing weight limits.
-     */
-    private static BundleContents buildContentsFromList(List<ItemStack> items) {
-        return buildContentsFromList(items, -1);
-    }
-
-    /**
-     * Build BundleContents from a list of items, bypassing weight limits.
-     * Preserves selectedIndex if valid.
      */
     private static BundleContents buildContentsFromList(List<ItemStack> items, int selectedIndex) {
         BundleContents.Mutable mutable = new BundleContents.Mutable(BundleContents.EMPTY);
@@ -200,79 +198,71 @@ public class QuiverItem extends Item {
 
         accessor.sagittary$setWeight(totalWeight);
 
-        // Set selected item index if valid
+        // Visual mirror only. Gameplay never reads vanilla's selected-item field.
+        //? if >=26.1 {
         if (selectedIndex >= 0 && selectedIndex < internalItems.size()) {
             accessor.sagittary$setSelectedItem(selectedIndex);
         }
+        //? }
 
         return mutable.toImmutable();
     }
 
-    /**
-     * Insert arrow directly into mutable, bypassing weight limits.
-     * Respects max stack size (64), creates new stacks if needed.
-     */
-    private static void insertArrowDirect(BundleContents.Mutable mutable, ItemStack toAdd) {
-        BundleContentsMutableAccessor accessor = (BundleContentsMutableAccessor) mutable;
-        List<ItemStack> items = accessor.sagittary$getItems();
+    private static List<ItemStack> copyItems(BundleContents contents) {
+        return new ArrayList<>(contents.itemCopyStream().toList());
+    }
 
-        int remaining = toAdd.getCount();
-        int maxStackSize = toAdd.getMaxStackSize();
+    /** Preserve the selected type through insertion/reordering, or repair it after depletion. */
+    private static void updateContents(ItemStack quiver, List<ItemStack> items, int fallbackIndex) {
+        ItemStack selected = peekArrow(quiver);
+        items.removeIf(ItemStack::isEmpty);
+        int index = indexOf(items, selected);
+        if (index < 0 && !items.isEmpty()) index = Mth.clamp(fallbackIndex, 0, items.size() - 1);
+        writeSelection(quiver, items, index);
+    }
 
-        // Try to merge with existing stacks
-        for (ItemStack existing : items) {
-            if (remaining <= 0) break;
-
-            if (ItemStack.isSameItemSameComponents(existing, toAdd)) {
-                int canAdd = maxStackSize - existing.getCount();
-                if (canAdd > 0) {
-                    int toMerge = Math.min(canAdd, remaining);
-                    existing.grow(toMerge);
-                    remaining -= toMerge;
-                }
+    private static int indexOf(List<ItemStack> items, ItemStack selected) {
+        if (!selected.isEmpty()) {
+            for (int i = 0; i < items.size(); i++) {
+                if (isValidArrow(items.get(i)) && ItemStack.isSameItemSameComponents(items.get(i), selected)) return i;
             }
         }
+        return -1;
+    }
 
-        // Add remaining as new stacks
-        while (remaining > 0) {
-            int stackSize = Math.min(remaining, maxStackSize);
-            items.add(0, toAdd.copyWithCount(stackSize));
-            remaining -= stackSize;
-        }
-
-        // Update weight
-        Fraction currentWeight = accessor.sagittary$getWeight();
-        Fraction addedWeight = ARROW_WEIGHT.multiplyBy(Fraction.getFraction(toAdd.getCount(), 1));
-        accessor.sagittary$setWeight(currentWeight.add(addedWeight));
+    private static void writeSelection(ItemStack quiver, List<ItemStack> items, int index) {
+        if (index >= 0) quiver.set(ObjectRegistry.QUIVER_SELECTION.get(), new QuiverSelection(items.get(index)));
+        else quiver.remove(ObjectRegistry.QUIVER_SELECTION.get());
+        quiver.set(DataComponents.BUNDLE_CONTENTS, buildContentsFromList(items, index));
     }
 
     @Override
+    //? if >=26.1 {
     public InteractionResult use(Level level, Player player, InteractionHand hand) {
+    //? } else {
+    /*public net.minecraft.world.InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
+    *///? }
         ItemStack quiver = player.getItemInHand(hand);
         BundleContents contents = quiver.get(DataComponents.BUNDLE_CONTENTS);
 
         if (contents != null && !contents.isEmpty()) {
-            // Drop all arrows on use
-            BundleContents.Mutable mutable = new BundleContents.Mutable(contents);
-
-            ItemStack removed;
-            while ((removed = mutable.removeOne()) != null) {
+            for (ItemStack removed : copyItems(contents)) {
                 if (!player.addItem(removed)) {
                     player.drop(removed, true);
                 }
             }
 
-            quiver.set(DataComponents.BUNDLE_CONTENTS, mutable.toImmutable());
+            updateContents(quiver, new ArrayList<>(), -1);
             this.playDropSound(player);
 
             if (player instanceof ServerPlayer serverPlayer) {
                 serverPlayer.awardStat(Stats.ITEM_USED.get(this));
             }
 
-            return InteractionResult.SUCCESS;
+            return net.vg.sagittary.util.Util.useResult(InteractionResult.SUCCESS, quiver);
         }
 
-        return InteractionResult.FAIL;
+        return net.vg.sagittary.util.Util.useResult(InteractionResult.FAIL, quiver);
     }
 
     /**
@@ -317,7 +307,7 @@ public class QuiverItem extends Item {
         if (!canAcceptArrow(contents, arrows, quiver)) return arrows;
         int count = Math.min(arrows.getCount(), getCapacity(quiver) - getTotalArrowCount(contents));
         if (count <= 0) return arrows;
-        quiver.set(DataComponents.BUNDLE_CONTENTS, addArrowsToContents(contents, arrows.copyWithCount(count)));
+        addArrowsToContents(quiver, arrows.copyWithCount(count));
         return arrows.copyWithCount(arrows.getCount() - count);
     }
 
@@ -367,7 +357,7 @@ public class QuiverItem extends Item {
 
     /**
      * Get the selected arrow from a quiver without removing it (for checking).
-     * Uses the bundle's selected item if set, otherwise returns first item.
+     * Uses Sagittary's persistent selected type, never vanilla bundle selection.
      */
     public static ItemStack peekArrow(ItemStack quiver) {
         if (!(quiver.getItem() instanceof QuiverItem)) {
@@ -378,26 +368,16 @@ public class QuiverItem extends Item {
             return ItemStack.EMPTY;
         }
 
-        // Check if there's a selected item
-        var selectedItem = contents.getSelectedItem();
-        if (selectedItem != null) {
-            return selectedItem.create();
-        }
-
-        // Fallback to first item
-        return contents.itemCopyStream().findFirst().orElse(ItemStack.EMPTY);
+        List<ItemStack> items = contents.itemCopyStream().toList();
+        int index = getSelectedIndex(quiver);
+        return index < 0 ? ItemStack.EMPTY : items.get(index);
     }
 
     public static void selectRandomArrow(ItemStack quiver, net.minecraft.util.RandomSource random) {
         BundleContents contents = quiver.get(DataComponents.BUNDLE_CONTENTS);
         if (contents == null || contents.isEmpty()) return;
-        List<ItemStack> items = new ArrayList<>();
-        contents.itemCopyStream().forEach(items::add);
-        if (items.size() > 1) {
-            ItemStack selected = items.remove(random.nextInt(items.size()));
-            items.add(0, selected);
-            quiver.set(DataComponents.BUNDLE_CONTENTS, buildContentsFromList(items, 0));
-        }
+        List<ItemStack> items = copyItems(contents);
+        writeSelection(quiver, items, random.nextInt(items.size()));
     }
 
     /**
@@ -412,7 +392,7 @@ public class QuiverItem extends Item {
 
     /**
      * Remove and return one arrow from a quiver (shrinks selected stack by 1).
-     * Uses the bundle's selected item if set, otherwise uses first item.
+     * Selection and consumption use the same Sagittary state.
      */
     public static ItemStack removeOneArrow(ItemStack quiver) {
         if (!(quiver.getItem() instanceof QuiverItem)) {
@@ -432,7 +412,8 @@ public class QuiverItem extends Item {
         }
 
         // Determine which index to remove from (selected or first)
-        int selectedIndex = contents.getSelectedItemIndex();
+        int selectedIndex = getSelectedIndex(quiver);
+        if (selectedIndex < 0) return ItemStack.EMPTY;
         int removeIndex = (selectedIndex >= 0 && selectedIndex < items.size()) ? selectedIndex : 0;
 
         // Get the stack and create a copy of 1 arrow
@@ -440,19 +421,14 @@ public class QuiverItem extends Item {
         ItemStack removed = targetStack.copyWithCount(1);
 
         // Shrink the stack or remove it entirely
-        int newSelectedIndex = selectedIndex;
         if (targetStack.getCount() > 1) {
             targetStack.shrink(1);
         } else {
             items.remove(removeIndex);
-            // Adjust selected index if needed
-            if (selectedIndex >= items.size()) {
-                newSelectedIndex = items.isEmpty() ? -1 : items.size() - 1;
-            }
         }
 
         // Rebuild the contents using direct method (preserves order and selection)
-        quiver.set(DataComponents.BUNDLE_CONTENTS, buildContentsFromList(items, newSelectedIndex));
+        updateContents(quiver, items, removeIndex);
 
         return removed;
     }
@@ -529,8 +505,14 @@ public class QuiverItem extends Item {
     }
 
     @Override
+    //? if >=26.1 {
     public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> consumer, TooltipFlag flag) {
         super.appendHoverText(stack, context, display, consumer, flag);
+    //? } else {
+    /*public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> lines, TooltipFlag flag) {
+        super.appendHoverText(stack, context, lines, flag);
+        Consumer<Component> consumer = lines::add;
+    *///? }
         BundleContents contents = stack.get(DataComponents.BUNDLE_CONTENTS);
         if (contents != null && !contents.isEmpty()) {
             // Show selected/equipped arrow
@@ -566,21 +548,14 @@ public class QuiverItem extends Item {
         List<ItemStack> items = new ArrayList<>();
         contents.itemCopyStream().forEach(items::add);
 
-        if (items.size() <= 1) {
-            return; // Nothing to cycle
-        }
-
-        // Rotate the list (move first to last, or last to first)
-        if (forward) {
-            ItemStack first = items.remove(0);
-            items.add(first);
-        } else {
-            ItemStack last = items.remove(items.size() - 1);
-            items.add(0, last);
-        }
-
-        // Rebuild the contents using direct method (preserves order, no weight limit)
-        quiver.set(DataComponents.BUNDLE_CONTENTS, buildContentsFromList(items));
+        int selected = getSelectedIndex(quiver);
+        if (selected < 0) return;
+        int next = selected;
+        // Multiple full stacks of one arrow type are one user-visible choice.
+        do {
+            next = Math.floorMod(next + (forward ? 1 : -1), items.size());
+        } while (next != selected && ItemStack.isSameItemSameComponents(items.get(selected), items.get(next)));
+        writeSelection(quiver, items, next);
     }
 
     @Override
@@ -591,7 +566,21 @@ public class QuiverItem extends Item {
         }
 
         // Use custom QuiverTooltip with correct capacity (256)
-        return Optional.of(QuiverTooltip.fromContents(contents, tier.capacity()));
+        return Optional.of(QuiverTooltip.fromContents(contents, getSelectedIndex(stack), tier.capacity()));
+    }
+
+    public static int getSelectedIndex(ItemStack quiver) {
+        BundleContents contents = quiver.get(DataComponents.BUNDLE_CONTENTS);
+        if (contents == null || contents.isEmpty()) return -1;
+        List<ItemStack> items = contents.itemCopyStream().toList();
+        QuiverSelection selection = quiver.get(ObjectRegistry.QUIVER_SELECTION.get());
+        ItemStack selected = selection == null ? ItemStack.EMPTY : selection.arrow();
+        int index = indexOf(items, selected);
+        if (index >= 0) return index;
+        // Old stacks without the component, or externally edited contents, have
+        // a deterministic fallback. The next server mutation persists the repair.
+        for (int i = 0; i < items.size(); i++) if (isValidArrow(items.get(i))) return i;
+        return -1;
     }
 
     private void playRemoveSound(Entity entity) {

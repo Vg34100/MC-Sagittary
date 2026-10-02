@@ -15,9 +15,17 @@ public final class SagittaryNeoForgeRenderHooks {
     private SagittaryNeoForgeRenderHooks() {}
 
     @SubscribeEvent
+    //? if >=26.1 {
     public static void onRenderLevel(RenderLevelStageEvent.AfterLevel event) {
         TopazPulseRenderer.render();
     }
+    //? } else {
+    /*public static void onRenderLevel(RenderLevelStageEvent event) {
+        if (event.getStage() == RenderLevelStageEvent.Stage.AFTER_LEVEL) {
+            TopazPulseRenderer.render(event.getPoseStack(), event.getCamera().getPosition());
+        }
+    }
+    *///? }
 
     @SubscribeEvent
     public static void onMouseScroll(InputEvent.MouseScrollingEvent event) {

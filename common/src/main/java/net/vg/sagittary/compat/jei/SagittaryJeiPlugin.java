@@ -29,6 +29,15 @@ public class SagittaryJeiPlugin implements IModPlugin {
     private static final Identifier PLUGIN_ID = Identifier.fromNamespaceAndPath(Sagittary.MOD_ID, "jei_plugin");
     private static final org.slf4j.Logger LOGGER = org.slf4j.LoggerFactory.getLogger("SagittaryJEI");
 
+    private static List<ArrowComponent> availableComponents() {
+        // Optional Spelunkery materials resolve to air when it is absent.
+        // JEI rejects empty catalysts and cannot craft recipes using them.
+        return java.util.Arrays.stream(ArrowComponent.values()).filter(component -> {
+            var item = component.getCraftingItem();
+            return item != null && item != Items.AIR;
+        }).toList();
+    }
+
     @Override
     public Identifier getPluginUid() {
         return PLUGIN_ID;
@@ -51,10 +60,11 @@ public class SagittaryJeiPlugin implements IModPlugin {
     @Override
     public void registerRecipes(IRecipeRegistration registration) {
         LOGGER.info("Sagittary JEI: Registering recipes");
+        List<ArrowComponent> components = availableComponents();
 
         // Register arrow component recipes (info entries)
         List<ArrowComponentRecipe> componentRecipes = new ArrayList<>();
-        for (ArrowComponent component : ArrowComponent.values()) {
+        for (ArrowComponent component : components) {
             componentRecipes.add(new ArrowComponentRecipe(component));
         }
         registration.addRecipes(ArrowComponentCategory.TYPE, componentRecipes);
@@ -62,11 +72,11 @@ public class SagittaryJeiPlugin implements IModPlugin {
 
         // Register fletching table recipes (all valid combinations)
         List<FletchingTableRecipe> fletchingRecipes = new ArrayList<>();
-        for (ArrowComponent tip : ArrowComponent.values()) {
+        for (ArrowComponent tip : components) {
             if (tip.getType() != ArrowComponent.ComponentType.TIP) continue;
-            for (ArrowComponent shaft : ArrowComponent.values()) {
+            for (ArrowComponent shaft : components) {
                 if (shaft.getType() != ArrowComponent.ComponentType.SHAFT) continue;
-                for (ArrowComponent fletching : ArrowComponent.values()) {
+                for (ArrowComponent fletching : components) {
                     if (fletching.getType() != ArrowComponent.ComponentType.FLETCHING) continue;
                     fletchingRecipes.add(new FletchingTableRecipe(tip, shaft, fletching));
                 }
@@ -82,7 +92,7 @@ public class SagittaryJeiPlugin implements IModPlugin {
 
     private void addComponentInfo(IRecipeRegistration registration) {
         // Add ingredient info for each component item
-        for (ArrowComponent component : ArrowComponent.values()) {
+        for (ArrowComponent component : availableComponents()) {
             ItemStack componentItem = new ItemStack(component.getCraftingItem());
 
             // Build the full component key (e.g., "ender_pearl_tip" instead of just "ender_pearl")
@@ -109,7 +119,7 @@ public class SagittaryJeiPlugin implements IModPlugin {
         registration.addRecipeCatalyst(new ItemStack(Items.FLETCHING_TABLE), FletchingTableCategory.TYPE);
 
         // All component items can access the arrow component category
-        for (ArrowComponent component : ArrowComponent.values()) {
+        for (ArrowComponent component : availableComponents()) {
             registration.addRecipeCatalyst(new ItemStack(component.getCraftingItem()), ArrowComponentCategory.TYPE);
         }
 

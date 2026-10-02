@@ -19,7 +19,11 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+//? if >=26.1 {
 @Mixin(BlockBehaviour.class)
+//? } else {
+/*@Mixin(net.minecraft.world.level.block.FletchingTableBlock.class)
+*///? }
 public class FletchingTableBlockMixin {
     
     @Inject(method = "useWithoutItem", at = @At("HEAD"), cancellable = true)

@@ -27,7 +27,7 @@ public class ComponentArrowTextureManager {
         
         return TEXTURE_CACHE.computeIfAbsent(cacheKey, key -> {
             // For now, return a composed identifier - actual texture composition will be handled by the renderer
-            return net.vg.sagittary.util.Identifier.of("item/component_arrow_" + cacheKey);
+            return net.vg.sagittary.util.ModIds.of("item/component_arrow_" + cacheKey);
         });
     }
     
@@ -36,7 +36,7 @@ public class ComponentArrowTextureManager {
      */
     public static Identifier getTextureForStack(ItemStack stack) {
         if (!(stack.getItem() instanceof ComponentArrowItem)) {
-            return net.vg.sagittary.util.Identifier.of("item/component_arrow");
+            return net.vg.sagittary.util.ModIds.of("item/component_arrow");
         }
         
         ArrowComponent tip = ComponentArrowItem.getTipFromStack(stack);
@@ -50,22 +50,22 @@ public class ComponentArrowTextureManager {
      * Gets the Identifier for a component texture
      */
     public static Identifier getTipTexture(ArrowComponent tip) {
-        return net.vg.sagittary.util.Identifier.of(TIP_PATH + tip.getMaterialName());
+        return net.vg.sagittary.util.ModIds.of(TIP_PATH + tip.getMaterialName());
     }
     
     public static Identifier getShaftTexture(ArrowComponent shaft) {
-        return net.vg.sagittary.util.Identifier.of(SHAFT_PATH + shaft.getMaterialName());
+        return net.vg.sagittary.util.ModIds.of(SHAFT_PATH + shaft.getMaterialName());
     }
     
     public static Identifier getFletchingTexture(ArrowComponent fletching) {
-        return net.vg.sagittary.util.Identifier.of(FLETCHING_PATH + fletching.getMaterialName());
+        return net.vg.sagittary.util.ModIds.of(FLETCHING_PATH + fletching.getMaterialName());
     }
     
     /**
      * Gets the base arrow texture
      */
     public static Identifier getBaseTexture() {
-        return net.vg.sagittary.util.Identifier.of("item/component_arrow");
+        return net.vg.sagittary.util.ModIds.of("item/component_arrow");
     }
     
     /**

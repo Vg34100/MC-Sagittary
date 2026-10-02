@@ -106,29 +106,37 @@ public class RepeaterCrossbowItem extends CrossbowItem {
         }
 
         if (!projectilesToLoad.isEmpty()) {
+            //? if >=26.1 {
             crossbow.set(DataComponents.CHARGED_PROJECTILES, ChargedProjectiles.ofNonEmpty(projectilesToLoad));
+            //? } else {
+            /*crossbow.set(DataComponents.CHARGED_PROJECTILES, ChargedProjectiles.of(projectilesToLoad));
+            *///? }
             return true;
         }
         return false;
     }
 
     @Override
+    //? if >=26.1 {
     public InteractionResult use(Level level, Player player, InteractionHand hand) {
+    //? } else {
+    /*public net.minecraft.world.InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
+    *///? }
         ItemStack stack = player.getItemInHand(hand);
 
         if (isCharged(stack)) {
             // Fire one arrow from the magazine
             performShooting(level, player, hand, stack, getShootingPower(stack), 1.0F, null);
-            return InteractionResult.CONSUME;
+            return net.vg.sagittary.util.Util.useResult(InteractionResult.CONSUME, stack);
         } else {
             // Check if player has arrows to load (quiver or inventory)
             if (!QuiverItem.getArrowFromInventory(player, stack).isEmpty()) {
                 loadSoundPlayed = false;
                 player.startUsingItem(hand);
-                return InteractionResult.CONSUME;
+                return net.vg.sagittary.util.Util.useResult(InteractionResult.CONSUME, stack);
             }
         }
-        return InteractionResult.FAIL;
+        return net.vg.sagittary.util.Util.useResult(InteractionResult.FAIL, stack);
     }
 
     private static float getShootingPower(ItemStack stack) {
@@ -151,7 +159,11 @@ public class RepeaterCrossbowItem extends CrossbowItem {
         }
 
         // Get all loaded projectiles
+        //? if >=26.1 {
         List<ItemStack> projectiles = new ArrayList<>(chargedProjectiles.itemCopies());
+        //? } else {
+        /*List<ItemStack> projectiles = new ArrayList<>(chargedProjectiles.getItems().stream().map(ItemStack::copy).toList());
+        *///? }
         if (projectiles.isEmpty()) {
             return;
         }
@@ -200,7 +212,11 @@ public class RepeaterCrossbowItem extends CrossbowItem {
         if (projectiles.isEmpty()) {
             crossbow.set(DataComponents.CHARGED_PROJECTILES, ChargedProjectiles.EMPTY);
         } else {
+            //? if >=26.1 {
             crossbow.set(DataComponents.CHARGED_PROJECTILES, ChargedProjectiles.ofNonEmpty(projectiles));
+            //? } else {
+            /*crossbow.set(DataComponents.CHARGED_PROJECTILES, ChargedProjectiles.of(projectiles));
+            *///? }
         }
 
         // Play sound
@@ -223,6 +239,10 @@ public class RepeaterCrossbowItem extends CrossbowItem {
         if (charged == null || charged.isEmpty()) {
             return 0;
         }
+        //? if >=26.1 {
         return charged.itemCopies().size();
+        //? } else {
+        /*return charged.getItems().stream().map(ItemStack::copy).toList().size();
+        *///? }
     }
 }

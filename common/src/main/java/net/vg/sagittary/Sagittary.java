@@ -14,6 +14,9 @@ import net.vg.sagittary.registry.ObjectRegistry;
 import net.vg.sagittary.item.QuiverItem;
 import net.vg.sagittary.network.CycleQuiverPayload;
 import dev.architectury.networking.NetworkManager;
+import dev.architectury.platform.Platform;
+import dev.architectury.utils.Env;
+import net.vg.sagittary.network.TopazPulsePayload;
 
 public final class Sagittary {
     public static final String MOD_ID = "sagittary";
@@ -78,10 +81,13 @@ public final class Sagittary {
         ObjectRegistry.init();
         TABS.register();
         SagittaryLootModifier.init();
+        //? if <26.1 {
+        /*net.vg.sagittary.compat.LegacyVillagerTrades.register();
+        *///? }
         NetworkManager.registerReceiver(NetworkManager.c2s(), CycleQuiverPayload.TYPE, CycleQuiverPayload.STREAM_CODEC,
-                (payload, context) -> context.queue(() -> {
-                    ItemStack quiver = QuiverItem.findActiveQuiver(context.getPlayer());
-                    if (!quiver.isEmpty()) QuiverItem.cycleSelectedArrow(quiver, payload.forward());
-                }));
+                (payload, context) -> context.queue(() -> payload.handle(context.getPlayer())));
+        if (Platform.getEnvironment() == Env.SERVER) {
+            NetworkManager.registerS2CPayloadType(TopazPulsePayload.TYPE, TopazPulsePayload.STREAM_CODEC);
+        }
     }
 }

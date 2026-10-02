@@ -36,7 +36,12 @@ public class BreezeRodShaftEffect implements ComponentEffect {
         if (entityHitResult.getEntity() instanceof LivingEntity target && !arrow.level().isClientSide()) {
             // Apply knockback
             Vec3 knockbackDir = arrow.getDeltaMovement().normalize();
+            //? if >=26.2 {
+            /*target.knockback(KNOCKBACK_STRENGTH, -knockbackDir.x, -knockbackDir.z,
+                    arrow.damageSources().arrow(arrow, arrow.getOwner()), 0.0F);
+            *///? } else {
             target.knockback(KNOCKBACK_STRENGTH, -knockbackDir.x, -knockbackDir.z);
+            //? }
 
             // Wind burst particles
             for (int i = 0; i < 15; i++) {

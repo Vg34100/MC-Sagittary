@@ -25,7 +25,7 @@ public class PlayerProjectileMixin {
         // Find a quiver with arrows
         ItemStack quiver = QuiverItem.findQuiverWithArrows(player);
         if (!quiver.isEmpty()) {
-            if (QuiverEnchantments.has(quiver, QuiverEnchantments.RANDOMIZER)) {
+            if (!player.level().isClientSide() && QuiverEnchantments.has(quiver, QuiverEnchantments.RANDOMIZER)) {
                 QuiverItem.selectRandomArrow(quiver, player.getRandom());
             }
             ItemStack arrow = QuiverItem.peekArrow(quiver);

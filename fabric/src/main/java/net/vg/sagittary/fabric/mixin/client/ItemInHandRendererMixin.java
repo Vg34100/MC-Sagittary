@@ -8,6 +8,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.ItemStack;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
+import org.spongepowered.asm.mixin.injection.Coerce;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.Redirect;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
@@ -18,6 +19,11 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
  */
 @Mixin(ItemInHandRenderer.class)
 public class ItemInHandRendererMixin {
+    //? if >=26.1 {
+    private static final String ITEM_IS = "Lnet/minecraft/world/item/ItemStack;is(Ljava/lang/Object;)Z";
+    //? } else {
+    /*private static final String ITEM_IS = "Lnet/minecraft/world/item/ItemStack;is(Lnet/minecraft/world/item/Item;)Z";
+    *///? }
 
     /**
      * Override isChargedCrossbow to also accept any CrossbowItem instance.
@@ -35,9 +41,9 @@ public class ItemInHandRendererMixin {
      */
     @Redirect(
         method = "evaluateWhichHandsToRender",
-        at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/ItemStack;is(Ljava/lang/Object;)Z")
+        at = @At(value = "INVOKE", target = ITEM_IS)
     )
-    private static boolean sagittary$redirectEvaluateIs(ItemStack stack, Object item) {
+    private static boolean sagittary$redirectEvaluateIs(ItemStack stack, @Coerce Object item) {
         if (item == Items.CROSSBOW) {
             return stack.getItem() instanceof CrossbowItem;
         }
@@ -55,9 +61,9 @@ public class ItemInHandRendererMixin {
      */
     @Redirect(
         method = "selectionUsingItemWhileHoldingBowLike",
-        at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/ItemStack;is(Ljava/lang/Object;)Z")
+        at = @At(value = "INVOKE", target = ITEM_IS)
     )
-    private static boolean sagittary$redirectSelectionIs(ItemStack stack, Object item) {
+    private static boolean sagittary$redirectSelectionIs(ItemStack stack, @Coerce Object item) {
         if (item == Items.CROSSBOW) {
             return stack.getItem() instanceof CrossbowItem;
         }
@@ -75,10 +81,14 @@ public class ItemInHandRendererMixin {
      * This is the critical one that enables the crossbow-specific transforms (centered position).
      */
     @Redirect(
+        //? if >=26.2 {
+        /*method = "submitArmWithItem",
+        *///? } else {
         method = "renderArmWithItem",
-        at = @At(value = "INVOKE", target = "Lnet/minecraft/world/item/ItemStack;is(Ljava/lang/Object;)Z")
+        //? }
+        at = @At(value = "INVOKE", target = ITEM_IS)
     )
-    private boolean sagittary$redirectRenderArmIs(ItemStack stack, Object item) {
+    private boolean sagittary$redirectRenderArmIs(ItemStack stack, @Coerce Object item) {
         if (item == Items.CROSSBOW) {
             return stack.getItem() instanceof CrossbowItem;
         }

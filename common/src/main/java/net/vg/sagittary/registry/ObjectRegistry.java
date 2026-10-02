@@ -17,6 +17,7 @@ import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.DispenserBlock;
 import net.vg.sagittary.Sagittary;
 import net.vg.sagittary.component.ArrowParts;
+import net.vg.sagittary.component.QuiverSelection;
 import net.vg.sagittary.dispenser.ComponentArrowDispenseBehavior;
 import net.vg.sagittary.entity.ComponentArrowEntity;
 import net.vg.sagittary.item.ComponentArrowItem;
@@ -28,7 +29,7 @@ import net.vg.sagittary.item.IronCrossbowItem;
 import net.vg.sagittary.item.CompoundBowItem;
 import net.vg.sagittary.item.RepeaterCrossbowItem;
 import net.vg.sagittary.menu.FletchingTableMenu;
-import net.vg.sagittary.util.Identifier;
+import net.vg.sagittary.util.ModIds;
 import net.vg.sagittary.util.RecipeSystem;
 import net.vg.sagittary.util.Util;
 
@@ -51,68 +52,82 @@ public class ObjectRegistry {
     public static final Registrar<DataComponentType<?>> DATA_COMPONENT_TYPE_REGISTRAR = DATA_COMPONENT_TYPES.getRegistrar();
 
     // REMOVED: Amethyst arrow is now part of the component system, not a separate item
-    // public static final RegistrySupplier<Item> AMETHYST_ARROW_ITEM = Util.registerItem(ITEMS, ITEM_REGISTRAR, Identifier.of("amethyst_arrow"), () -> {
-    //     return new AmethystArrowItem(new Item.Properties().setId(Util.createItemKey("amethyst_arrow")));
+    // public static final RegistrySupplier<Item> AMETHYST_ARROW_ITEM = Util.registerItem(ITEMS, ITEM_REGISTRAR, ModIds.of("amethyst_arrow"), () -> {
+    //     return new AmethystArrowItem(Util.itemProperties(Util.createItemKey("amethyst_arrow")));
     // });
     
-    public static final RegistrySupplier<Item> COMPONENT_ARROW_ITEM = Util.registerItem(ITEMS, ITEM_REGISTRAR, Identifier.of("component_arrow"), () -> {
-        return new ComponentArrowItem(new Item.Properties().setId(Util.createItemKey("component_arrow")));
+    public static final RegistrySupplier<Item> COMPONENT_ARROW_ITEM = Util.registerItem(ITEMS, ITEM_REGISTRAR, ModIds.of("component_arrow"), () -> {
+        return new ComponentArrowItem(Util.itemProperties(Util.createItemKey("component_arrow")));
     });
 
-    public static final RegistrySupplier<Item> QUIVER_ITEM = Util.registerItem(ITEMS, ITEM_REGISTRAR, Identifier.of("quiver"), () -> {
-        return new QuiverItem(TrinketsCompat.makeBackEquippable(new Item.Properties().setId(Util.createItemKey("quiver"))), QuiverTier.BASIC);
+    public static final RegistrySupplier<Item> QUIVER_ITEM = Util.registerItem(ITEMS, ITEM_REGISTRAR, ModIds.of("quiver"), () -> {
+        return new QuiverItem(TrinketsCompat.makeBackEquippable(Util.itemProperties(Util.createItemKey("quiver"))), QuiverTier.BASIC);
     });
 
-    public static final RegistrySupplier<Item> HUNTER_QUIVER_ITEM = Util.registerItem(ITEMS, ITEM_REGISTRAR, Identifier.of("hunter_quiver"), () ->
-        new QuiverItem(TrinketsCompat.makeBackEquippable(new Item.Properties().setId(Util.createItemKey("hunter_quiver"))), QuiverTier.HUNTER));
+    public static final RegistrySupplier<Item> HUNTER_QUIVER_ITEM = Util.registerItem(ITEMS, ITEM_REGISTRAR, ModIds.of("hunter_quiver"), () ->
+        new QuiverItem(TrinketsCompat.makeBackEquippable(Util.itemProperties(Util.createItemKey("hunter_quiver"))), QuiverTier.HUNTER));
 
-    public static final RegistrySupplier<Item> RANGER_QUIVER_ITEM = Util.registerItem(ITEMS, ITEM_REGISTRAR, Identifier.of("ranger_quiver"), () ->
-        new QuiverItem(TrinketsCompat.makeBackEquippable(new Item.Properties().setId(Util.createItemKey("ranger_quiver"))), QuiverTier.RANGER));
+    public static final RegistrySupplier<Item> RANGER_QUIVER_ITEM = Util.registerItem(ITEMS, ITEM_REGISTRAR, ModIds.of("ranger_quiver"), () ->
+        new QuiverItem(TrinketsCompat.makeBackEquippable(Util.itemProperties(Util.createItemKey("ranger_quiver"))), QuiverTier.RANGER));
 
-    public static final RegistrySupplier<Item> HUNTER_QUIVER_UPGRADE = Util.registerItem(ITEMS, ITEM_REGISTRAR, Identifier.of("hunter_quiver_upgrade"), () ->
-        new Item(new Item.Properties().setId(Util.createItemKey("hunter_quiver_upgrade"))));
+    public static final RegistrySupplier<Item> HUNTER_QUIVER_UPGRADE = Util.registerItem(ITEMS, ITEM_REGISTRAR, ModIds.of("hunter_quiver_upgrade"), () ->
+        new Item(Util.itemProperties(Util.createItemKey("hunter_quiver_upgrade"))));
 
-    public static final RegistrySupplier<Item> RANGER_QUIVER_UPGRADE = Util.registerItem(ITEMS, ITEM_REGISTRAR, Identifier.of("ranger_quiver_upgrade"), () ->
-        new Item(new Item.Properties().setId(Util.createItemKey("ranger_quiver_upgrade"))));
+    public static final RegistrySupplier<Item> RANGER_QUIVER_UPGRADE = Util.registerItem(ITEMS, ITEM_REGISTRAR, ModIds.of("ranger_quiver_upgrade"), () ->
+        new Item(Util.itemProperties(Util.createItemKey("ranger_quiver_upgrade"))));
 
-    public static final RegistrySupplier<Item> IRON_BOW_ITEM = Util.registerItem(ITEMS, ITEM_REGISTRAR, Identifier.of("iron_bow"), () -> {
-        return new IronBowItem(new Item.Properties().setId(Util.createItemKey("iron_bow")).durability(576));
+    public static final RegistrySupplier<Item> IRON_BOW_ITEM = Util.registerItem(ITEMS, ITEM_REGISTRAR, ModIds.of("iron_bow"), () -> {
+        return new IronBowItem(Util.itemProperties(Util.createItemKey("iron_bow")).durability(576));
     });
 
-    public static final RegistrySupplier<Item> IRON_CROSSBOW_ITEM = Util.registerItem(ITEMS, ITEM_REGISTRAR, Identifier.of("iron_crossbow"), () -> {
-        return new IronCrossbowItem(new Item.Properties().setId(Util.createItemKey("iron_crossbow")).durability(652));
+    public static final RegistrySupplier<Item> IRON_CROSSBOW_ITEM = Util.registerItem(ITEMS, ITEM_REGISTRAR, ModIds.of("iron_crossbow"), () -> {
+        return new IronCrossbowItem(Util.itemProperties(Util.createItemKey("iron_crossbow")).durability(652));
     });
 
-    public static final RegistrySupplier<Item> COMPOUND_BOW_ITEM = Util.registerItem(ITEMS, ITEM_REGISTRAR, Identifier.of("compound_bow"), () -> {
-        return new CompoundBowItem(new Item.Properties().setId(Util.createItemKey("compound_bow")).durability(500));
+    public static final RegistrySupplier<Item> COMPOUND_BOW_ITEM = Util.registerItem(ITEMS, ITEM_REGISTRAR, ModIds.of("compound_bow"), () -> {
+        return new CompoundBowItem(Util.itemProperties(Util.createItemKey("compound_bow")).durability(500));
     });
 
-    public static final RegistrySupplier<Item> REPEATER_CROSSBOW_ITEM = Util.registerItem(ITEMS, ITEM_REGISTRAR, Identifier.of("repeater_crossbow"), () -> {
-        return new RepeaterCrossbowItem(new Item.Properties().setId(Util.createItemKey("repeater_crossbow")).durability(400));
+    public static final RegistrySupplier<Item> REPEATER_CROSSBOW_ITEM = Util.registerItem(ITEMS, ITEM_REGISTRAR, ModIds.of("repeater_crossbow"), () -> {
+        return new RepeaterCrossbowItem(Util.itemProperties(Util.createItemKey("repeater_crossbow")).durability(400));
     });
 
     // REMOVED: Amethyst arrow entity is now part of the component system
-    // public static final RegistrySupplier<EntityType<AmethystArrowEntity>> AMETHYST_ARROW_ENTITY = Util.registerEntity(ENTITIES, ENTITY_REGISTRAR, Identifier.of("amethyst_arrow"), () ->
+    // public static final RegistrySupplier<EntityType<AmethystArrowEntity>> AMETHYST_ARROW_ENTITY = Util.registerEntity(ENTITIES, ENTITY_REGISTRAR, ModIds.of("amethyst_arrow"), () ->
     //     EntityType.Builder.<AmethystArrowEntity>of(AmethystArrowEntity::new, MobCategory.MISC)
     //         .sized(0.5F, 0.5F)
     //         .clientTrackingRange(4)
     //         .updateInterval(20)
-    //         .build(ResourceKey.create(Registries.ENTITY_TYPE, Identifier.of("amethyst_arrow"))));
+    //         .build(ResourceKey.create(Registries.ENTITY_TYPE, ModIds.of("amethyst_arrow"))));
             
-    public static final RegistrySupplier<EntityType<ComponentArrowEntity>> COMPONENT_ARROW_ENTITY = Util.registerEntity(ENTITIES, ENTITY_REGISTRAR, Identifier.of("component_arrow"), () -> 
+    public static final RegistrySupplier<EntityType<ComponentArrowEntity>> COMPONENT_ARROW_ENTITY = Util.registerEntity(ENTITIES, ENTITY_REGISTRAR, ModIds.of("component_arrow"), () ->
         EntityType.Builder.<ComponentArrowEntity>of(ComponentArrowEntity::new, MobCategory.MISC)
             .sized(0.5F, 0.5F)
             .clientTrackingRange(4)
             .updateInterval(20)
-            .build(ResourceKey.create(Registries.ENTITY_TYPE, Identifier.of("component_arrow"))));
+            //? if >=26.1 {
+            .build(ResourceKey.create(Registries.ENTITY_TYPE, ModIds.of("component_arrow"))));
+            //? } else {
+            /*// This parameter only checks a DFU schema; the registry supplier
+            // above still owns sagittary:component_arrow's identity.
+            .build("minecraft:arrow"));
+            *///? }
     
-    public static final RegistrySupplier<MenuType<FletchingTableMenu>> FLETCHING_TABLE_MENU_TYPE = MENU_TYPES.register(Identifier.of("fletching_table"), () -> 
+    public static final RegistrySupplier<MenuType<FletchingTableMenu>> FLETCHING_TABLE_MENU_TYPE = MENU_TYPES.register(ModIds.of("fletching_table"), () ->
         new MenuType<>(FletchingTableMenu::new, net.minecraft.world.flag.FeatureFlags.DEFAULT_FLAGS));
     
-    public static final RegistrySupplier<DataComponentType<ArrowParts>> ARROW_PARTS = DATA_COMPONENT_TYPES.register(Identifier.of("arrow_parts"), () ->
+    public static final RegistrySupplier<DataComponentType<ArrowParts>> ARROW_PARTS = DATA_COMPONENT_TYPES.register(ModIds.of("arrow_parts"), () ->
         DataComponentType.<ArrowParts>builder()
             .persistent(ArrowParts.CODEC)
             .networkSynchronized(ArrowParts.STREAM_CODEC)
+            .build());
+
+    // A count-one arrow prototype identifies the selected type independently of
+    // bundle order, stack splitting, and vanilla's transient bundle selection.
+    public static final RegistrySupplier<DataComponentType<QuiverSelection>> QUIVER_SELECTION = DATA_COMPONENT_TYPES.register(ModIds.of("quiver_selection"), () ->
+        DataComponentType.<QuiverSelection>builder()
+            .persistent(QuiverSelection.CODEC)
+            .networkSynchronized(QuiverSelection.STREAM_CODEC)
             .build());
 
     static {
@@ -235,7 +250,7 @@ public class ObjectRegistry {
     }
 
     public static <T extends Block> RegistrySupplier<T> registerWithItem(String name, Supplier<T> block) {
-        return Util.registerWithItem(BLOCKS, BLOCK_REGISTRAR, ITEMS, ITEM_REGISTRAR, Identifier.of(name), block);
+        return Util.registerWithItem(BLOCKS, BLOCK_REGISTRAR, ITEMS, ITEM_REGISTRAR, ModIds.of(name), block);
     }
 
 }

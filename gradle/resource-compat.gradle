@@ -1,0 +1,110 @@
+import groovy.json.JsonOutput
+import groovy.json.JsonSlurper
+
+// Legacy NeoForge has no supported Trinkets-family provider. Remove the optional
+// modern declaration structurally, without maintaining another metadata file.
+if (stonecutter.eval(stonecutter.current.version, '<26.1') && project.name.endsWith('-neoforge')) {
+    processResources.doLast {
+        def metadata = new File(destinationDir, 'META-INF/neoforge.mods.toml')
+        def blocks = metadata.getText('UTF-8').split(/(?m)(?=^\[\[dependencies\.sagittary\]\])/)
+        metadata.setText(blocks.findAll { !it.contains('modId = "trinkets_updated"') }.join(''), 'UTF-8')
+    }
+}
+
+// Translate serialized formats, never Java. Originals remain canonical 26.x.
+if (stonecutter.eval(stonecutter.current.version, '<26.1')) {
+    tasks.named('processResources') {
+        inputs.file(rootProject.file('gradle/resource-compat.gradle'))
+        doLast {
+            def parse = { File file -> new JsonSlurper().parse(file) }
+            def write = { File file, value ->
+                file.setText(JsonOutput.prettyPrint(JsonOutput.toJson(value)) + '\n', 'UTF-8')
+            }
+            def ingredient = { value ->
+                value instanceof String ? (value.startsWith('#') ? [tag: value.substring(1)] : [item: value]) : value
+            }
+            fileTree(destinationDir).matching { include 'data/**/recipe/**/*.json' }.each { file ->
+                def recipe = parse(file)
+                ['ingredient', 'base', 'addition', 'template'].each { key ->
+                    if (recipe.containsKey(key)) recipe[key] = ingredient(recipe[key])
+                }
+                if (recipe.ingredients instanceof List) recipe.ingredients = recipe.ingredients.collect(ingredient)
+                if (recipe.key instanceof Map) recipe.key = recipe.key.collectEntries { key, value -> [(key): ingredient(value)] }
+                write(file, recipe)
+            }
+
+            // CustomModelData was an integer in 1.21; advancement icons also
+            // contain item components and must agree with ComponentArrowItem.
+            Closure components
+            components = { value ->
+                if (value instanceof Map) {
+                    def data = value['minecraft:custom_model_data']
+                    if (data instanceof Map && data.strings) value['minecraft:custom_model_data'] = data.strings.first() as int
+                    value.values().each { components(it) }
+                } else if (value instanceof List) value.each { components(it) }
+            }
+            fileTree(destinationDir).matching { include 'data/**/advancement/**/*.json' }.each { file ->
+                def advancement = parse(file)
+                components(advancement)
+                write(file, advancement)
+            }
+
+            // Derive legacy predicates from item definitions. In particular,
+            // old checked-in arrow overrides predate the current 240 variants.
+            fileTree(destinationDir).matching { include 'assets/**/items/*.json' }.each { definition ->
+                def path = destinationDir.toPath().relativize(definition.toPath()).toString().replace('\\', '/')
+                def modelFile = new File(destinationDir, path.replace('/items/', '/models/item/'))
+                if (!modelFile.isFile()) throw new GradleException("Missing legacy model for ${path}")
+                def graph = parse(definition).model
+                def model = parse(modelFile)
+                def overrides = []
+                if (graph.type == 'minecraft:select' && graph.property == 'minecraft:custom_model_data') {
+                    graph.cases.each { choice ->
+                        def values = choice.when instanceof List ? choice.when : [choice.when]
+                        values.each { value -> overrides.add([predicate: [custom_model_data: value as int], model: choice.model.model]) }
+                    }
+                    overrides.sort { it.predicate.custom_model_data }
+                } else if (graph.type == 'minecraft:range_dispatch' && graph.property == 'minecraft:bundle/fullness') {
+                    // Item definitions can select a different base model; keep
+                    // that relationship when moving to legacy predicates.
+                    model = [parent: graph.fallback.model]
+                    graph.entries.each { entry ->
+                        overrides.add([predicate: ['sagittary:fullness': entry.threshold], model: entry.model.model])
+                    }
+                } else if (graph.type == 'minecraft:model') {
+                    def ownModel = definition.parentFile.parentFile.name + ':item/' + definition.name.replaceFirst(/\.json$/, '')
+                    // A flat definition normally points at the existing model,
+                    // not a new parent. Replacing it would create a self-loop.
+                    if (graph.model != ownModel) model = [parent: graph.model]
+                    write(modelFile, model)
+                } else {
+                    def charge = graph.property == 'minecraft:charge_type' ? graph : null
+                    def using = charge ? charge.fallback : graph
+                    if (using.property == 'minecraft:using_item' && using.on_true.type == 'minecraft:range_dispatch') {
+                        def pull = using.on_true
+                        overrides.add([predicate: [pulling: 1], model: pull.fallback.model])
+                        pull.entries.each { entry ->
+                            overrides.add([predicate: [pulling: 1, pull: entry.threshold], model: entry.model.model])
+                        }
+                    } else {
+                        throw new GradleException("Unsupported legacy item definition: ${path}")
+                    }
+                    charge?.cases?.each { choice ->
+                        overrides.add([predicate: [charged: 1, firework: choice.when == 'rocket' ? 1 : 0], model: choice.model.model])
+                    }
+                }
+                if (overrides) {
+                    model.overrides = overrides
+                    write(modelFile, model)
+                }
+                // Only remove the generated target copy of the newer schema.
+                delete(definition)
+            }
+
+            def mixinsFile = new File(destinationDir, 'sagittary.mixins.json')
+            def mixins = parse(mixinsFile)
+            mixins.client.remove('client.BundleMouseActionsMixin') // Target does not exist in 1.21.
+            write(mixinsFile, mixins)
+        }
+    }
+}

@@ -1,0 +1,26 @@
+// Fixed symbol/package renames only. Gameplay differences stay in Java.
+def legacy = stonecutter.eval(stonecutter.current.version, '<26.1')
+stonecutter.replacements.string(legacy) {
+    replace('Identifier', 'ResourceLocation')
+}
+stonecutter.replacements.string(legacy) {
+    replace('net.minecraft.world.entity.projectile.arrow.AbstractArrow', 'net.minecraft.world.entity.projectile.AbstractArrow')
+}
+stonecutter.replacements.string(legacy) {
+    replace('net/minecraft/world/entity/projectile/arrow/AbstractArrow', 'net/minecraft/world/entity/projectile/AbstractArrow')
+}
+stonecutter.replacements.string(legacy) {
+    replace('net.minecraft.client.data.models', 'net.minecraft.data.models')
+}
+stonecutter.replacements.string(legacy) {
+    replace('net.fabricmc.fabric.api.client.datagen.v1.provider.FabricModelProvider', 'net.fabricmc.fabric.api.datagen.v1.provider.FabricModelProvider')
+}
+stonecutter.replacements.string(legacy) {
+    replace('FabricPackOutput', 'FabricDataOutput')
+}
+stonecutter.replacements.string(legacy) {
+    replace('GuiGraphicsExtractor', 'GuiGraphics')
+}
+stonecutter.replacements.string(legacy) {
+    replace('MobEffects.SLOWNESS', 'MobEffects.MOVEMENT_SLOWDOWN')
+}

@@ -1,7 +1,11 @@
 package net.vg.sagittary.fabric.data;
 
 import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
+//? if >=26.1 {
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagsProvider;
+//? } else {
+/*import net.fabricmc.fabric.api.datagen.v1.provider.FabricTagProvider;
+*///? }
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.tags.TagKey;
@@ -13,7 +17,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
+//? if >=26.1 {
 public class ModTagProvider extends FabricTagsProvider<Biome> {
+//? } else {
+/*public class ModTagProvider extends FabricTagProvider<Biome> {
+*///? }
     //  EXAMPLE: Wild Carrot (Single)
     //  public static final TagKey<Biome> WILD_CARROT_BIOME_TAG = TagKey.create(Registries.BIOME, ResourceLocation.fromNamespaceAndPath("wildcrops", "spawns_wild_carrot"));
 

@@ -7,8 +7,12 @@ import net.minecraft.world.entity.*;
 import net.minecraft.world.entity.projectile.arrow.AbstractArrow;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
+//? if >=26.1 {
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+//? } else {
+/*import net.minecraft.nbt.CompoundTag;
+*///? }
 import net.minecraft.world.phys.BlockHitResult;
 import net.minecraft.world.phys.EntityHitResult;
 import net.vg.sagittary.component.ArrowComponent;
@@ -132,7 +136,7 @@ public class ComponentArrowEntity extends AbstractArrow {
         if (stack != null
                 && !stack.isEmpty()
                 && stack.getItem() instanceof ComponentArrowItem
-                && stack.hasNonDefault(ObjectRegistry.ARROW_PARTS.get())) {
+                && stack.has(ObjectRegistry.ARROW_PARTS.get())) {
             this.tipComponent = ComponentArrowItem.getTipFromStack(stack);
             this.shaftComponent = ComponentArrowItem.getShaftFromStack(stack);
             this.fletchingComponent = ComponentArrowItem.getFletchingFromStack(stack);
@@ -200,7 +204,7 @@ public class ComponentArrowEntity extends AbstractArrow {
     @Override
     public void tick() {
         // Skip all custom logic when arrow is in ground to not interfere with settling
-        if (this.isInGround()) {
+        if (this.isArrowInGround()) {
             super.tick();
             return;
         }
@@ -209,7 +213,7 @@ public class ComponentArrowEntity extends AbstractArrow {
         super.tick();
 
         // Only run effects when arrow is still in flight
-        if (!this.isInGround()) {
+        if (!this.isArrowInGround()) {
             this.tipEffect.onTick(this);
             this.shaftEffect.onTick(this);
             this.fletchingEffect.onTick(this);
@@ -294,7 +298,11 @@ public class ComponentArrowEntity extends AbstractArrow {
     }
 
     @Override
+    //? if >=26.1 {
     protected void addAdditionalSaveData(ValueOutput compound) {
+    //? } else {
+    /*public void addAdditionalSaveData(CompoundTag compound) {
+    *///? }
         super.addAdditionalSaveData(compound);
         compound.putString("TipComponent", this.tipComponent.getMaterialName());
         compound.putString("ShaftComponent", this.shaftComponent.getMaterialName());
@@ -304,27 +312,31 @@ public class ComponentArrowEntity extends AbstractArrow {
     }
 
     @Override
+    //? if >=26.1 {
     protected void readAdditionalSaveData(ValueInput compound) {
+    //? } else {
+    /*public void readAdditionalSaveData(CompoundTag compound) {
+    *///? }
         super.readAdditionalSaveData(compound);
 
-        compound.getString("TipComponent").ifPresent(tipName -> {
+        readString(compound, "TipComponent").ifPresent(tipName -> {
             this.tipComponent = ArrowComponent.getByMaterialAndType(tipName, ArrowComponent.ComponentType.TIP);
             this.entityData.set(TIP_COMPONENT, tipName);
         });
 
-        compound.getString("ShaftComponent").ifPresent(shaftName -> {
+        readString(compound, "ShaftComponent").ifPresent(shaftName -> {
             this.shaftComponent = ArrowComponent.getByMaterialAndType(shaftName, ArrowComponent.ComponentType.SHAFT);
             this.entityData.set(SHAFT_COMPONENT, shaftName);
         });
 
-        compound.getString("FletchingComponent").ifPresent(fletchingName -> {
+        readString(compound, "FletchingComponent").ifPresent(fletchingName -> {
             this.fletchingComponent = ArrowComponent.getByMaterialAndType(fletchingName, ArrowComponent.ComponentType.FLETCHING);
             this.entityData.set(FLETCHING_COMPONENT, fletchingName);
         });
 
         // Load effect counters
-        compound.getInt("BounceCount").ifPresent(count -> this.bounceCount = count);
-        compound.getInt("PierceCount").ifPresent(count -> this.pierceCount = count);
+        readInt(compound, "BounceCount").ifPresent(count -> this.bounceCount = count);
+        readInt(compound, "PierceCount").ifPresent(count -> this.pierceCount = count);
 
         // Recreate effect instances after loading
         this.tipEffect = this.tipComponent.createEffect();
@@ -334,6 +346,22 @@ public class ComponentArrowEntity extends AbstractArrow {
         // Reapply effects after loading
         applyComponentEffects();
     }
+
+    //? if >=26.1 {
+    private static java.util.Optional<String> readString(ValueInput input, String key) {
+        return input.getString(key);
+    }
+    private static java.util.Optional<Integer> readInt(ValueInput input, String key) {
+        return input.getInt(key);
+    }
+    //? } else {
+    /*private static java.util.Optional<String> readString(CompoundTag input, String key) {
+        return input.contains(key) ? java.util.Optional.of(input.getString(key)) : java.util.Optional.empty();
+    }
+    private static java.util.Optional<Integer> readInt(CompoundTag input, String key) {
+        return input.contains(key) ? java.util.Optional.of(input.getInt(key)) : java.util.Optional.empty();
+    }
+    *///? }
 
     // Getters for components (useful for rendering or other systems)
     public ArrowComponent getTipComponent() { return tipComponent; }
@@ -351,18 +379,26 @@ public class ComponentArrowEntity extends AbstractArrow {
 
     // Public accessor for protected isInGround() method (for effects to use)
     public boolean isArrowInGround() {
+        //? if >=26.1 {
         return this.isInGround();
+        //? } else {
+        /*return this.inGround;
+        *///? }
     }
 
     // Public wrapper for SlimeTipEffect bouncing
     public void setArrowInGround(boolean inGround) {
+        //? if >=26.1 {
         this.setInGround(inGround);
+        //? } else {
+        /*this.inGround = inGround;
+        *///? }
     }
 
     @Override
     protected double getDefaultGravity() {
         // Skip gravity modifiers when in ground - use vanilla gravity for proper settling
-        if (this.isInGround()) {
+        if (this.isArrowInGround()) {
             return super.getDefaultGravity();
         }
 

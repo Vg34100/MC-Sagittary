@@ -8,7 +8,9 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.CustomModelData;
+//? if >=26.1 {
 import net.minecraft.world.item.component.TooltipDisplay;
+//? }
 import net.minecraft.world.level.Level;
 import net.minecraft.world.entity.projectile.arrow.AbstractArrow;
 
@@ -37,8 +39,14 @@ public class ComponentArrowItem extends ArrowItem {
     }
     
     @Override
+    //? if >=26.1 {
     public void appendHoverText(ItemStack stack, Item.TooltipContext tooltipContext, TooltipDisplay tooltipDisplay, Consumer<Component> consumer, TooltipFlag tooltipFlag) {
         super.appendHoverText(stack, tooltipContext, tooltipDisplay, consumer, tooltipFlag);
+    //? } else {
+    /*public void appendHoverText(ItemStack stack, Item.TooltipContext tooltipContext, List<Component> lines, TooltipFlag tooltipFlag) {
+        super.appendHoverText(stack, tooltipContext, lines, tooltipFlag);
+        Consumer<Component> consumer = lines::add;
+    *///? }
         
         ArrowParts parts = getArrowPartsFromStack(stack);
         consumer.accept(Component.literal(""));
@@ -61,8 +69,11 @@ public class ComponentArrowItem extends ArrowItem {
     
     public static void setArrowPartsOnStack(ItemStack stack, ArrowParts parts) {
         stack.set(ObjectRegistry.ARROW_PARTS.get(), parts);
-        // 26.1.2: CustomModelData(floats, flags, strings, colors) - select property reads from strings list
+        //? if >=26.1 {
         stack.set(DataComponents.CUSTOM_MODEL_DATA, new CustomModelData(List.of(), List.of(), List.of(String.valueOf(getModelData(parts))), List.of()));
+        //? } else {
+        /*stack.set(DataComponents.CUSTOM_MODEL_DATA, new CustomModelData(getModelData(parts)));
+        *///? }
     }
     
     public static ArrowParts getArrowPartsFromStack(ItemStack stack) {

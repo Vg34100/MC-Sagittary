@@ -8,6 +8,12 @@ import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.phys.EntityHitResult;
 import net.vg.sagittary.entity.ComponentArrowEntity;
 
+//? if >=26.2 {
+/*import static net.minecraft.world.entity.EntityTypes.*;
+*///? } else {
+import static net.minecraft.world.entity.EntityType.*;
+//? }
+
 /**
  * Effect for bone shafts - Smite effect (extra damage to undead).
  * Deals bonus damage to undead mobs.
@@ -17,19 +23,10 @@ public class BoneShaftEffect implements ComponentEffect {
 
     private static boolean isUndead(LivingEntity entity) {
         EntityType<?> type = entity.getType();
-        return type == EntityType.ZOMBIE ||
-               type == EntityType.SKELETON ||
-               type == EntityType.WITHER_SKELETON ||
-               type == EntityType.STRAY ||
-               type == EntityType.DROWNED ||
-               type == EntityType.HUSK ||
-               type == EntityType.PHANTOM ||
-               type == EntityType.WITHER ||
-               type == EntityType.ZOGLIN ||
-               type == EntityType.ZOMBIE_VILLAGER ||
-               type == EntityType.ZOMBIFIED_PIGLIN ||
-               type == EntityType.SKELETON_HORSE ||
-               type == EntityType.ZOMBIE_HORSE;
+        return type == ZOMBIE || type == SKELETON || type == WITHER_SKELETON ||
+               type == STRAY || type == DROWNED || type == HUSK || type == PHANTOM ||
+               type == WITHER || type == ZOGLIN || type == ZOMBIE_VILLAGER ||
+               type == ZOMBIFIED_PIGLIN || type == SKELETON_HORSE || type == ZOMBIE_HORSE;
     }
 
     @Override

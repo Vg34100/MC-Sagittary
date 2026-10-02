@@ -14,6 +14,10 @@ public final class QuiverEnchantments {
     public static boolean has(ItemStack stack, Identifier enchantment) {
         ItemEnchantments enchantments = stack.getOrDefault(DataComponents.ENCHANTMENTS, ItemEnchantments.EMPTY);
         return enchantments.keySet().stream().anyMatch(holder -> holder.unwrapKey()
+                //? if >=26.1 {
                 .map(key -> key.identifier().equals(enchantment)).orElse(false));
+                //? } else {
+                /*.map(key -> key.location().equals(enchantment)).orElse(false));
+                *///? }
     }
 }

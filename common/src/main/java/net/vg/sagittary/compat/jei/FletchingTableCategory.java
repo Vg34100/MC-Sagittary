@@ -25,11 +25,22 @@ public class FletchingTableCategory implements IRecipeCategory<FletchingTableRec
 
     private final IDrawable icon;
     private final Component title;
+    //? if <1.21.1 {
+    /*private final IDrawable background;
+    *///? }
 
     public FletchingTableCategory(IGuiHelper guiHelper) {
         this.icon = guiHelper.createDrawableItemStack(new ItemStack(Items.FLETCHING_TABLE));
         this.title = Component.translatable("jei.sagittary.fletching_table.title");
+        //? if <1.21.1 {
+        /*this.background = guiHelper.createBlankDrawable(WIDTH, HEIGHT);
+        *///? }
     }
+
+    //? if <1.21.1 {
+    /*@Override
+    public IDrawable getBackground() { return background; }
+    *///? }
 
     @Override
     public RecipeType<FletchingTableRecipe> getRecipeType() {

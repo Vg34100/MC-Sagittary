@@ -23,6 +23,24 @@ import static net.vg.sagittary.registry.ObjectRegistry.ITEMS;
 import static net.vg.sagittary.registry.ObjectRegistry.ITEM_REGISTRAR;
 
 public class Util {
+    public static Item.Properties itemProperties(ResourceKey<Item> key) {
+        //? if >=26.1 {
+        return new Item.Properties().setId(key);
+        //? } else {
+        /*return new Item.Properties();
+        *///? }
+    }
+
+    //? if >=26.1 {
+    public static net.minecraft.world.InteractionResult useResult(net.minecraft.world.InteractionResult result, net.minecraft.world.item.ItemStack stack) {
+        return result;
+    }
+    //? } else {
+    /*public static net.minecraft.world.InteractionResultHolder<net.minecraft.world.item.ItemStack> useResult(net.minecraft.world.InteractionResult result, net.minecraft.world.item.ItemStack stack) {
+        return new net.minecraft.world.InteractionResultHolder<>(result, stack);
+    }
+    *///? }
+
     // Record to hold all item metadata
     public record ModItem(
             RegistrySupplier<Item> item,
@@ -56,7 +74,7 @@ public class Util {
                 .collect(Collectors.joining(" "));
 
         // Create a ResourceLocation for the item
-        Identifier resourceLocation = net.vg.sagittary.util.Identifier.of(path);
+        Identifier resourceLocation = net.vg.sagittary.util.ModIds.of(path);
 
         // Create a ResourceKey for the item
         ResourceKey<Item> itemKey = ResourceKey.create(Registries.ITEM, resourceLocation);
@@ -83,7 +101,7 @@ public class Util {
         ResourceKey<Item> itemKey = ResourceKey.create(Registries.ITEM, name);
 
         registerItem(registerI, registrarI, name, () -> {
-            Item.Properties properties = new Item.Properties().setId(itemKey);
+            Item.Properties properties = itemProperties(itemKey);
             return new BlockItem(toReturn.get(), properties);
         });
 

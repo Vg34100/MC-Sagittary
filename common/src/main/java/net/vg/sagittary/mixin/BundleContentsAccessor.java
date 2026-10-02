@@ -12,16 +12,26 @@ import java.util.function.Supplier;
 @Mixin(BundleContents.class)
 public interface BundleContentsAccessor {
     @Accessor("weight")
+    //? if >=26.1 {
     Supplier<DataResult<Fraction>> sagittary$getWeight();
+    //? } else {
+    /*Fraction sagittary$getWeight();
+    *///? }
 
     @Mutable
     @Accessor("weight")
+    //? if >=26.1 {
     void sagittary$setWeight(Supplier<DataResult<Fraction>> weight);
+    //? } else {
+    /*void sagittary$setWeight(Fraction weight);
+    *///? }
 
+    //? if >=26.1 {
     @Accessor("selectedItem")
     int sagittary$getSelectedItem();
 
     @Mutable
     @Accessor("selectedItem")
     void sagittary$setSelectedItem(int selectedItem);
+    //? }
 }

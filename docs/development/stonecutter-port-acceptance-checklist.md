@@ -1,103 +1,116 @@
-# Stonecutter multi-version port acceptance checklist
+# Sagittary Stonecutter Port Acceptance Checklist
 
-Use this checklist when converting another Architectury mod to a Fishing
-Frenzy-style Stonecutter matrix. It is a release gate, not merely a list of
-Gradle tasks: a target is unsupported until its **installable jar** has passed
-the applicable runtime checks.
+Use this as the completion gate for each claimed Minecraft/loader target.
 
-Read `stonecutter-multiversion-migration.md` first. That document explains how
-to build the matrix; this one defines when the work is actually complete.
+Compilation is necessary but not sufficient.
 
-## 1. Establish the baseline
+## Baseline
 
-- [ ] Record the mod's existing Minecraft version, Fabric/NeoForge versions,
-  Java version, Architectury version, and known-good launch commands.
-- [ ] Start the original target on both loaders before changing build files.
-- [ ] Inspect `git status --short`; preserve all user-owned changes.
-- [ ] List every direct Minecraft API, mixin target, resource format, and
-  loader-native hook likely to differ between the oldest and newest targets.
-- [ ] Identify sentinel targets: oldest Fabric, oldest NeoForge, canonical,
-  and each known dependency/API boundary.
+- [ ] Record the pre-migration 26.1.2 Fabric result.
+- [ ] Record the pre-migration 26.1.2 NeoForge result.
+- [ ] Record known pre-existing failures.
+- [ ] Check `git status --short` before migration edits.
 
-## 2. Design the matrix before porting code
+## Matrix Structure
 
-- [ ] Create one explicit `<mc-version>-fabric` and `<mc-version>-neoforge`
-  node per supported pair, with pinned property files.
-- [ ] Keep the main `common/`, `fabric/`, and `neoforge/` trees canonical for
-  the maintained/current API generation.
-- [ ] Give each node an isolated run directory.
-- [ ] Select Java 21 for 1.21/1.21.1 and Java 25 for 26.x where those are the
-  game's requirements. Configure legacy toolchains at project level before
-  Loom creates run tasks; do not combine `javaLauncher` and `executable`.
-- [ ] Write a narrow, named generated-source/resource transform only after
-  proving a specific incompatibility. Never edit `build/matrix-*` output.
+- [ ] Every claimed Minecraft/loader pair has an explicit target.
+- [ ] Every target has a pinned `gradle/matrix/<target>.properties`.
+- [ ] Matrix property files are the active dependency/version source of truth.
+- [ ] Every target has an isolated run directory.
+- [ ] Fabric metadata is expanded for the active target.
+- [ ] NeoForge metadata is expanded for the active target.
+- [ ] Java/toolchain selection matches the target generation.
+- [ ] Legacy/current packaging tasks produce the intended artifact type.
 
-## 3. Handle compatibility differences deliberately
+## Compatibility
 
-- [ ] Separate common behavior from Fabric and NeoForge bootstrap/client code.
-- [ ] Verify every mixin target against the exact mapped game version; omit a
-  version-only mixin from targets where its target does not exist.
-- [ ] Translate data/resource formats only for affected legacy nodes (for
-  example item definitions, recipe ingredient shape, or model predicates).
-- [ ] Validate client-only registrations independently on Fabric and NeoForge.
-- [ ] For vanilla-derived behavior, inspect the target version's resource JSON,
-  concrete implementation class, and actual method body before adapting it.
-- [ ] Verify Mixins/invokers against exact runtime JVM descriptors; a lookalike
-  local type is not descriptor-compatible with a private target type.
-- [ ] If legacy item colors use a color-provider callback, return opaque ARGB
-  values (`0xFFRRGGBB`), not 24-bit RGB values.
-- [ ] Record every transform's reason next to the transform and in the
-  migration guide.
+For each compatibility rule:
 
-## 4. Build the correct artifact
+- [ ] The difference was observed on a real target.
+- [ ] The exact target API/resource format was checked.
+- [ ] The selected mechanism follows `compatibility-policy.md`.
+- [ ] Small source differences use a readable local form.
+- [ ] Large behavior differences use a real compatibility implementation instead of broad source regex.
+- [ ] Resource transforms are target-scoped and their processed output was inspected.
+- [ ] Mixins were checked against exact target method/descriptor behavior.
 
-- [ ] Before the full matrix build, complete compile, package, runtime, and
-  representative gameplay/visual validation on the sentinel targets.
-- [ ] Expand compatibility transforms only after their sentinel behavior works.
+## Sentinel Checks
 
-- [ ] Run `python build-smart.py matrix:compile`.
-- [ ] Run `python build-smart.py matrix:package`.
-- [ ] For 1.21/1.21.1, distribute only the **remapped** `remapJar` output: the
-  jar without `-dev` in its name. Never install the Mojang-named `*-dev.jar`.
-- [ ] For 26.1+, distribute the normal `jar` output; this game line is
-  unobfuscated and does not use legacy remapping.
-- [ ] Confirm the generated release jar sits in
-  `build/libs/<target>/`, has the expected metadata, and is not a raw/dev jar.
-- [ ] Ensure the matrix packaging aggregate calls `remapJar` for legacy targets
-  and `jar` for 26.x targets, so a future release cannot accidentally publish
-  a development artifact.
+Before expanding a compatibility rule:
 
-## 5. Runtime acceptance gates
+- [ ] Canonical 26.1.2 Fabric compiles/packages.
+- [ ] Canonical 26.1.2 NeoForge compiles/packages.
+- [ ] 26.2 Fabric passes the relevant check.
+- [ ] 26.2 NeoForge passes when loader behavior is involved.
+- [ ] 1.21.1 Fabric passes the relevant legacy check.
+- [ ] 1.21.1 NeoForge passes when loader behavior is involved.
+- [ ] 1.21 is checked separately before assuming 1.21.1 compatibility.
 
-For each loader/version API generation being claimed:
+## Matrix Build
 
-- [ ] Start `runClient` and reach a stable title screen after initial resource
-  reload.
-- [ ] Start `runServer`, reach its ready/`Done` line, then stop it cleanly.
-- [ ] Confirm shared initialization never loads a client class on a dedicated
-  server.
-- [ ] Install the produced release jar in a real external launcher instance
-  (for example Prism), with matching Minecraft, loader, Java, Architectury,
-  and required dependencies.
-- [ ] Confirm that external instance reaches the title screen; this catches
-  development-mapping/remapping mistakes that `runClient` cannot.
-- [ ] Exercise representative gameplay: registry entries, models/textures,
-  recipes/loot, networking, and any feature touched by transforms.
-- [ ] Record results in a compact ledger with target, commit, artifact type,
-  client, server, external-launcher, and gameplay status.
+- [ ] `python build-smart.py matrix:compile` passes.
+- [ ] `python build-smart.py matrix:package` passes.
+- [ ] `python build-smart.py matrix:server` passes.
+- [ ] `--print-plan` confirms intended Gradle Java/task selection when environment setup is in doubt.
 
-## 6. Close out safely
+## Dedicated Server
 
-- [ ] Update the migration guide with newly discovered differences and their
-  exact workaround.
-- [ ] State clearly which exact targets had external release-jar tests versus
-  development-only smoke tests.
-- [ ] Stage only port files; do not stage generated outputs, run worlds,
-  caches, or unrelated user edits.
-- [ ] Make a coherent commit with the verified scope.
+For each target required by the release gate:
 
-## Definition of done
+- [ ] `runServer` starts.
+- [ ] Minecraft reaches `Done (...)!`.
+- [ ] The wrapper sends `stop`.
+- [ ] The server begins clean shutdown.
+- [ ] Gradle exits successfully.
+- [ ] No unexpected runtime error was reported.
+- [ ] Shared initialization did not load client-only classes.
 
-Do **not** call the port complete because all Java targets compile. It is
-complete only when every claimed target has the correct distribution artifact,
-the required client/server runtime smoke tests, and documented exceptions.
+Do not count an exit-before-`Done` as a pass.
+
+## Client
+
+For each target required by the release gate:
+
+- [ ] `runClient` reaches a stable title screen.
+- [ ] Resource reload completes.
+- [ ] No required mixin fails.
+- [ ] Loader metadata accepts active Minecraft/loader/dependency versions.
+
+## Sagittary Gameplay Checks
+
+Run checks relevant to compatibility work, including:
+
+- [ ] items register and render;
+- [ ] component arrows can be created/used;
+- [ ] custom arrow entities behave normally;
+- [ ] bow/crossbow behavior works;
+- [ ] quiver storage/use/cycling works;
+- [ ] quiver tooltip/client rendering works;
+- [ ] Fletching Table menu opens and functions;
+- [ ] Fletching Table screen renders and updates;
+- [ ] networking payloads used by tested features work;
+- [ ] affected mixins execute without runtime injection failures;
+- [ ] JEI integration works when installed for that target;
+- [ ] optional integrations do not become hard dependencies.
+
+## Real Release Artifact
+
+For each release target:
+
+- [ ] Build the installable artifact, not a raw/dev jar.
+- [ ] Confirm the artifact is in the intended matrix output location.
+- [ ] Inspect loader metadata inside the produced jar.
+- [ ] Test the produced jar in an external launcher instance with matching dependencies.
+- [ ] Reach the title screen.
+- [ ] Exercise representative Sagittary gameplay.
+
+Development `runClient` alone does not prove the release jar is correct.
+
+## Closeout
+
+- [ ] Record new version boundaries future work needs to know.
+- [ ] Remove accidental generated/cached files from the change set.
+- [ ] Do not stage unrelated user files.
+- [ ] State exactly which targets received runtime checks.
+- [ ] State which targets received only compile/package checks.
+- [ ] Do not call the migration complete while required runtime or external-jar checks remain.

@@ -1,7 +1,11 @@
 package net.vg.sagittary.fabric.data;
 
 import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
+//? if >=26.1 {
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricBlockLootSubProvider;
+//? } else {
+/*import net.fabricmc.fabric.api.datagen.v1.provider.FabricBlockLootTableProvider;
+*///? }
 import net.minecraft.core.HolderLookup;
 //import net.minecraft.world.item.Item;
 //import net.minecraft.world.level.block.Block;
@@ -16,7 +20,11 @@ import net.minecraft.core.HolderLookup;
 
 import java.util.concurrent.CompletableFuture;
 
+//? if >=26.1 {
 public class ModLootProvider extends FabricBlockLootSubProvider {
+//? } else {
+/*public class ModLootProvider extends FabricBlockLootTableProvider {
+*///? }
     protected ModLootProvider(FabricPackOutput dataOutput, CompletableFuture<HolderLookup.Provider> registryLookup) {
         super(dataOutput, registryLookup);
     }

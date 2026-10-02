@@ -6,6 +6,12 @@ import net.minecraft.world.entity.*;
 import net.minecraft.world.phys.EntityHitResult;
 import net.vg.sagittary.entity.ComponentArrowEntity;
 
+//? if >=26.2 {
+/*import static net.minecraft.world.entity.EntityTypes.LIGHTNING_BOLT;
+*///? } else {
+import static net.minecraft.world.entity.EntityType.LIGHTNING_BOLT;
+//? }
+
 /**
  * Effect for copper tips - has a chance to summon lightning and creates electric particles.
  */
@@ -20,11 +26,15 @@ public class CopperTipEffect implements ComponentEffect {
 
         // 10% chance
         if (arrow.getRandom().nextFloat() < 0.1f) {
-            LightningBolt lightning = EntityType.LIGHTNING_BOLT.create(
+            LightningBolt lightning = LIGHTNING_BOLT.create(
                     serverLevel,
                     null,
                     target.blockPosition(),
+                    //? if >=26.1 {
                     EntitySpawnReason.EVENT,
+                    //? } else {
+                    /*MobSpawnType.EVENT,
+                    *///? }
                     false,
                     false
             );

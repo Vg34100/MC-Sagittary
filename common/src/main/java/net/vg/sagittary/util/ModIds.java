@@ -2,7 +2,7 @@ package net.vg.sagittary.util;
 
 import net.vg.sagittary.Sagittary;
 
-public class Identifier {
+public final class ModIds {
     public static net.minecraft.resources.Identifier of(String path) {
         return net.minecraft.resources.Identifier.fromNamespaceAndPath(Sagittary.MOD_ID, path);
     }

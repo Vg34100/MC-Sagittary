@@ -1,9 +1,11 @@
 {
   "required": true,
   "package": "net.vg.sagittary.mixin",
-  "compatibilityLevel": "JAVA_21",
+  "compatibilityLevel": "JAVA_${java_version}",
   "minVersion": "0.8",
   "client": [
+    "client.ContainerScreenAccessor",
+    "client.QuiverInventoryScrollMixin",
     "client.BundleMouseActionsMixin"
   ],
   "mixins": [

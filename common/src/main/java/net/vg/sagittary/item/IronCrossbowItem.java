@@ -34,22 +34,26 @@ public class IronCrossbowItem extends CrossbowItem {
     }
 
     @Override
+    //? if >=26.1 {
     public InteractionResult use(Level level, Player player, InteractionHand hand) {
+    //? } else {
+    /*public net.minecraft.world.InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
+    *///? }
         ItemStack stack = player.getItemInHand(hand);
 
         if (isCharged(stack)) {
             // Fire the loaded arrow
             performShooting(level, player, hand, stack, getShootingPower(stack), 1.0F, null);
-            return InteractionResult.CONSUME;
+            return net.vg.sagittary.util.Util.useResult(InteractionResult.CONSUME, stack);
         } else {
             // Check if player has arrows to load (quiver or inventory)
             if (!QuiverItem.getArrowFromInventory(player, stack).isEmpty()) {
                 loadSoundPlayed = false;
                 player.startUsingItem(hand);
-                return InteractionResult.CONSUME;
+                return net.vg.sagittary.util.Util.useResult(InteractionResult.CONSUME, stack);
             }
         }
-        return InteractionResult.FAIL;
+        return net.vg.sagittary.util.Util.useResult(InteractionResult.FAIL, stack);
     }
 
     private static float getShootingPower(ItemStack stack) {
@@ -110,7 +114,11 @@ public class IronCrossbowItem extends CrossbowItem {
             QuiverItem.consumeArrowFromInventory(player, crossbow);
         }
 
+        //? if >=26.1 {
         crossbow.set(DataComponents.CHARGED_PROJECTILES, ChargedProjectiles.ofNonEmpty(List.of(singleArrow)));
+        //? } else {
+        /*crossbow.set(DataComponents.CHARGED_PROJECTILES, ChargedProjectiles.of(List.of(singleArrow)));
+        *///? }
         return true;
     }
 }

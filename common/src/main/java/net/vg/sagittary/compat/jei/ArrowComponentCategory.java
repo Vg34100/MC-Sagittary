@@ -27,11 +27,22 @@ public class ArrowComponentCategory implements IRecipeCategory<ArrowComponentRec
 
     private final IDrawable icon;
     private final Component title;
+    //? if <1.21.1 {
+    /*private final IDrawable background;
+    *///? }
 
     public ArrowComponentCategory(IGuiHelper guiHelper) {
         this.icon = guiHelper.createDrawableItemStack(new ItemStack(Items.FLETCHING_TABLE));
         this.title = Component.translatable("jei.sagittary.arrow_components.title");
+        //? if <1.21.1 {
+        /*this.background = guiHelper.createBlankDrawable(WIDTH, HEIGHT);
+        *///? }
     }
+
+    //? if <1.21.1 {
+    /*@Override
+    public IDrawable getBackground() { return background; }
+    *///? }
 
     @Override
     public RecipeType<ArrowComponentRecipe> getRecipeType() {
@@ -68,7 +79,11 @@ public class ArrowComponentCategory implements IRecipeCategory<ArrowComponentRec
         // Show the component item - clicking it shows ingredient info with description
         builder.addSlot(RecipeIngredientRole.INPUT, 1, 1)
                 .addItemStack(recipe.getComponentItem())
+                //? if >1.21 {
                 .addRichTooltipCallback((recipeSlotView, tooltip) -> {
+                //? } else {
+                /*.addTooltipCallback((recipeSlotView, tooltip) -> {
+                *///? }
                     tooltip.add(Component.translatable("jei.sagittary.type." + component.getType().name().toLowerCase())
                             .withStyle(style -> style.withColor(0xAAAAAA)));
                     tooltip.add(Component.translatable("jei.sagittary.component." + componentKey + ".desc")

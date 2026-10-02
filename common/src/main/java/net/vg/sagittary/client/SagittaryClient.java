@@ -2,7 +2,11 @@ package net.vg.sagittary.client;
 
 import dev.architectury.registry.client.level.entity.EntityRendererRegistry;
 import dev.architectury.registry.client.gui.ClientTooltipComponentRegistry;
+//? if >=26.1 {
 import dev.architectury.registry.client.gui.MenuScreenRegistry;
+//? } else {
+/*import dev.architectury.registry.menu.MenuRegistry;
+*///? }
 import dev.architectury.event.events.client.ClientGuiEvent;
 import dev.architectury.event.events.client.ClientRawInputEvent;
 import dev.architectury.event.EventResult;
@@ -12,10 +16,12 @@ import com.mojang.blaze3d.platform.InputConstants;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
+import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
+import net.minecraft.world.inventory.Slot;
+import net.vg.sagittary.mixin.client.ContainerScreenAccessor;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.client.renderer.entity.ArrowRenderer;
-import net.minecraft.client.renderer.entity.EntityRendererProvider;
-import net.minecraft.client.renderer.entity.state.ArrowRenderState;
 import net.minecraft.resources.Identifier;
 import net.vg.sagittary.entity.ComponentArrowEntity;
 import net.vg.sagittary.registry.ObjectRegistry;
@@ -31,7 +37,11 @@ import java.util.List;
 public class SagittaryClient {
     public static final KeyMapping QUIVER_CYCLE = new KeyMapping(
             "key.sagittary.quiver_cycle", InputConstants.Type.KEYSYM, InputConstants.KEY_V,
-            KeyMapping.Category.register(Identifier.fromNamespaceAndPath("sagittary", "general")));
+            //? if >=26.1 {
+            new KeyMapping.Category(Identifier.fromNamespaceAndPath("sagittary", "general")));
+            //? } else {
+            /*"key.categories.sagittary");
+            *///? }
     private static boolean quiverControlsInitialized;
 
     public static void init() {
@@ -40,6 +50,10 @@ public class SagittaryClient {
         initItemRenderers();
         initTooltips();
         initQuiverControls();
+        initNetworking();
+    }
+
+    public static void initNetworking() {
         NetworkManager.registerReceiver(NetworkManager.s2c(), TopazPulsePayload.TYPE, TopazPulsePayload.STREAM_CODEC,
                 (payload, context) -> context.queue(() -> TopazPulseRenderer.addPulse(payload.targets())));
     }
@@ -60,20 +74,55 @@ public class SagittaryClient {
     /** @return true when the scroll was consumed by the quiver selector. */
     public static boolean handleQuiverScroll(Minecraft minecraft, double verticalAmount) {
         if (!QUIVER_CYCLE.isDown() || minecraft.player == null || verticalAmount == 0.0) return false;
+        // Inventory hover owns scrolling while a screen is open; never send two requests.
+        //? if >=26.2 {
+        /*if (minecraft.gui.screen() != null) return false;
+        *///? } else {
+        if (minecraft.screen != null) return false;
+        //? }
+        if (QuiverItem.findActiveQuiver(minecraft.player).isEmpty()) return false;
         // Match the normal hotbar: scrolling down advances to the next slot.
         NetworkManager.sendToServer(new CycleQuiverPayload(verticalAmount < 0.0));
         return true;
     }
 
+    /** Shared by legacy/current inventories, including Creative's client-only menu. */
+    public static boolean handleInventoryQuiverScroll(Screen screen, double verticalAmount) {
+        Minecraft minecraft = Minecraft.getInstance();
+        if (minecraft.player == null || verticalAmount == 0.0
+                || !(screen instanceof AbstractContainerScreen<?> container)
+                || !container.getMenu().getCarried().isEmpty()) return false;
+        Slot hovered = ((ContainerScreenAccessor) container).sagittary$getHoveredSlot();
+        if (hovered == null || !(hovered.getItem().getItem() instanceof QuiverItem)) return false;
+        var menu = container.getMenu();
+        int index = hovered.index;
+        if (screen instanceof CreativeModeInventoryScreen || menu != minecraft.player.containerMenu) {
+            // Match the backing stack by identity, not the creative wrapper's
+            // index or item equality (two quivers can have identical contents).
+            menu = minecraft.player.inventoryMenu;
+            index = -1;
+            for (Slot slot : menu.slots) {
+                if (slot.getItem() == hovered.getItem()) { index = slot.index; break; }
+            }
+            if (index < 0) return false; // Catalog/trash slots are not player inventory.
+        }
+        NetworkManager.sendToServer(new CycleQuiverPayload(menu.containerId, index, verticalAmount < 0.0));
+        return true;
+    }
+
     private static void renderQuiverSelector(GuiGraphicsExtractor graphics, net.minecraft.client.DeltaTracker deltaTracker) {
         Minecraft minecraft = Minecraft.getInstance();
+        //? if >=26.2 {
+        /*if (!QUIVER_CYCLE.isDown() || minecraft.player == null || minecraft.gui.hud.isHidden()) return;
+        *///? } else {
         if (!QUIVER_CYCLE.isDown() || minecraft.player == null || minecraft.options.hideGui) return;
+        //? }
         ItemStack quiver = QuiverItem.findActiveQuiver(minecraft.player);
         BundleContents contents = quiver.get(DataComponents.BUNDLE_CONTENTS);
         if (contents == null || contents.isEmpty()) return;
 
         List<ItemStack> arrows = contents.itemCopyStream().toList();
-        int selected = contents.getSelectedItemIndex();
+        int selected = QuiverItem.getSelectedIndex(quiver);
         if (selected < 0 || selected >= arrows.size()) selected = 0;
         int x = graphics.guiWidth() / 2 + 92;
         int y = graphics.guiHeight() - 23;
@@ -87,8 +136,13 @@ public class SagittaryClient {
             graphics.fill(slotX + 1, y + 18, slotX + 19, y + 19, 0xFF8B7A5B);
             graphics.fill(slotX + 1, y + 1, slotX + 2, y + 19, 0xFF8B7A5B);
             graphics.fill(slotX + 18, y + 1, slotX + 19, y + 19, 0xFF8B7A5B);
+            //? if >=26.1 {
             graphics.item(arrows.get(index), slotX + 2, y + 2);
             graphics.itemDecorations(minecraft.font, arrows.get(index), slotX + 2, y + 2);
+            //? } else {
+            /*graphics.renderItem(arrows.get(index), slotX + 2, y + 2);
+            graphics.renderItemDecorations(minecraft.font, arrows.get(index), slotX + 2, y + 2);
+            *///? }
         }
     }
 
@@ -97,9 +151,10 @@ public class SagittaryClient {
     }
     
     public static void initItemRenderers() {
-        // Item appearance is driven by custom_model_data on 1.21.1.
+        //? if <26.1 {
+        /*LegacyItemProperties.register();
+        *///? }
     }
-    
     public static void initEntityRenderers() {
         // REMOVED: Amethyst arrow is now part of the component system
         // EntityRendererRegistry.register(ObjectRegistry.AMETHYST_ARROW_ENTITY, AmethystArrowRenderer::new);
@@ -107,26 +162,11 @@ public class SagittaryClient {
     }
     
     public static void initScreens() {
+        //? if >=26.1 {
         MenuScreenRegistry.registerScreenFactory(ObjectRegistry.FLETCHING_TABLE_MENU_TYPE.get(), FletchingTableScreen::new);
+        //? } else {
+        /*MenuRegistry.registerScreenFactory(ObjectRegistry.FLETCHING_TABLE_MENU_TYPE.get(), FletchingTableScreen::new);
+        *///? }
     }
     
-    // REMOVED: AmethystArrowRenderer - amethyst arrow is now part of the component system
-
-    public static class ComponentArrowRenderer extends ArrowRenderer<ComponentArrowEntity, ArrowRenderState> {
-        public static final Identifier ARROW_LOCATION = Identifier.withDefaultNamespace("textures/entity/projectiles/arrow.png");
-        
-        public ComponentArrowRenderer(EntityRendererProvider.Context context) {
-            super(context);
-        }
-
-        @Override
-        public Identifier getTextureLocation(ArrowRenderState renderState) {
-            return ARROW_LOCATION;
-        }
-
-        @Override
-        public ArrowRenderState createRenderState() {
-            return new ArrowRenderState();
-        }
-    }
 }

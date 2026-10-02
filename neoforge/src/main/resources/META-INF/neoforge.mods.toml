@@ -11,26 +11,26 @@ authors = "VgLevelUp"
 description = '''
 
 '''
-logoFile = "icon.png"
+${neoforge_icon_field} = "icon.png"
 
 [[dependencies.sagittary]]
 modId = "neoforge"
 type = "required"
-versionRange = "[26.1.2,)"
+versionRange = "[${neoforge_version},)"
 ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.sagittary]]
 modId = "minecraft"
 type = "required"
-versionRange = "[26.1.2,)"
+versionRange = "[${minecraft_version}]"
 ordering = "NONE"
 side = "BOTH"
 
 [[dependencies.sagittary]]
 modId = "architectury"
 type = "required"
-versionRange = "[20.0.7,)"
+versionRange = "[${architectury_api_version},)"
 ordering = "AFTER"
 side = "BOTH"
 
@@ -50,3 +50,6 @@ side = "BOTH"
 
 [[mixins]]
 config = "sagittary.mixins.json"
+
+[features.sagittary]
+javaVersion = "[${java_version},)"

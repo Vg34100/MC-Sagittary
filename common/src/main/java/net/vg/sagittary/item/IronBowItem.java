@@ -30,19 +30,33 @@ public class IronBowItem extends BowItem {
     }
 
     @Override
+    //? if >=26.1 {
     public InteractionResult use(Level level, Player player, InteractionHand hand) {
+    //? } else {
+    /*public net.minecraft.world.InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
+    *///? }
         ItemStack stack = player.getItemInHand(hand);
         // Check for arrows in quiver OR inventory
         ItemStack arrowStack = QuiverItem.getArrowFromInventory(player, stack);
         if (!arrowStack.isEmpty()) {
             player.startUsingItem(hand);
-            return InteractionResult.CONSUME;
+            return net.vg.sagittary.util.Util.useResult(InteractionResult.CONSUME, stack);
         }
-        return InteractionResult.FAIL;
+        return net.vg.sagittary.util.Util.useResult(InteractionResult.FAIL, stack);
     }
 
     @Override
+    //? if >=26.1 {
     public boolean releaseUsing(ItemStack stack, Level level, LivingEntity entity, int timeLeft) {
+        return releaseArrow(stack, level, entity, timeLeft);
+    }
+    //? } else {
+    /*public void releaseUsing(ItemStack stack, Level level, LivingEntity entity, int timeLeft) {
+        releaseArrow(stack, level, entity, timeLeft);
+    }
+    *///? }
+
+    private boolean releaseArrow(ItemStack stack, Level level, LivingEntity entity, int timeLeft) {
         if (!(entity instanceof Player player)) {
             return false;
         }

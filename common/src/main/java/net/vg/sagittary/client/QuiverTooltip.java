@@ -12,13 +12,13 @@ import java.util.List;
  */
 public record QuiverTooltip(List<ItemStack> items, int selectedIndex, float fullness) implements TooltipComponent {
 
-    public static QuiverTooltip fromContents(BundleContents contents, int maxCapacity) {
+    public static QuiverTooltip fromContents(BundleContents contents, int selectedIndex, int maxCapacity) {
         List<ItemStack> items = new ArrayList<>();
         contents.itemCopyStream().forEach(items::add);
 
         int totalCount = items.stream().mapToInt(ItemStack::getCount).sum();
         float fullness = (float) totalCount / maxCapacity;
 
-        return new QuiverTooltip(items, contents.getSelectedItemIndex(), fullness);
+        return new QuiverTooltip(items, selectedIndex, fullness);
     }
 }

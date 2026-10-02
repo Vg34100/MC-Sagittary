@@ -6,10 +6,10 @@ import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.player.Inventory;
 import net.vg.sagittary.menu.FletchingTableMenu;
-import net.vg.sagittary.util.Identifier;
+import net.vg.sagittary.util.ModIds;
 
 public class FletchingTableScreen extends AbstractContainerScreen<FletchingTableMenu> {
-    private static final net.minecraft.resources.Identifier TEXTURE = Identifier.of("textures/gui/fletching_table.png");
+    private static final net.minecraft.resources.Identifier TEXTURE = ModIds.of("textures/gui/fletching_table.png");
     
     public FletchingTableScreen(FletchingTableMenu menu, Inventory playerInventory, Component title) {
         super(menu, playerInventory, title, 176, 166);

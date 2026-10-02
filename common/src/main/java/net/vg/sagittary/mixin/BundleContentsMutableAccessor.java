@@ -19,9 +19,11 @@ public interface BundleContentsMutableAccessor {
     @Accessor("weight")
     void sagittary$setWeight(Fraction weight);
 
+    //? if >=26.1 {
     @Accessor("selectedItem")
     int sagittary$getSelectedItem();
 
     @Accessor("selectedItem")
     void sagittary$setSelectedItem(int index);
+    //? }
 }

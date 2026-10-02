@@ -8,6 +8,7 @@ import net.neoforged.fml.loading.FMLEnvironment;
 import net.neoforged.neoforge.client.event.EntityRenderersEvent;
 import net.neoforged.neoforge.client.event.RegisterClientTooltipComponentFactoriesEvent;
 import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
+import net.neoforged.neoforge.client.event.RegisterKeyMappingsEvent;
 import net.vg.sagittary.Sagittary;
 import net.neoforged.fml.common.Mod;
 import net.vg.sagittary.client.QuiverTooltip;
@@ -24,11 +25,19 @@ public final class SagittaryNeoForge {
         
         // Add setup listeners
         modEventBus.addListener(this::commonSetup);
+        //? if >=26.1 {
         if(FMLEnvironment.getDist().isClient()) {
+        //? } else {
+        /*if(FMLEnvironment.dist.isClient()) {
+        *///? }
             modEventBus.addListener(this::clientSetup);
             modEventBus.addListener(this::registerEntityRenderers);
             modEventBus.addListener(this::registerMenuScreens);
             modEventBus.addListener(this::registerTooltipComponents);
+            modEventBus.addListener(this::registerKeys);
+            // Payload types must be known before NeoForge's registration event,
+            // not first installed during the later client-setup work queue.
+            SagittaryClient.initNetworking();
         }
     }
     
@@ -42,6 +51,13 @@ public final class SagittaryNeoForge {
             SagittaryClient.initQuiverControls();
         });
     }
+
+    private void registerKeys(RegisterKeyMappingsEvent event) {
+        //? if >=26.1 {
+        event.registerCategory(SagittaryClient.QUIVER_CYCLE.getCategory());
+        //? }
+        event.register(SagittaryClient.QUIVER_CYCLE);
+    }
     
     private void registerMenuScreens(RegisterMenuScreensEvent event) {
         // Register menu screens at the proper time for NeoForge
@@ -52,7 +68,7 @@ public final class SagittaryNeoForge {
         // Register entity renderers at the proper time for NeoForge
         // REMOVED: Amethyst arrow is now part of the component system
         // event.registerEntityRenderer(ObjectRegistry.AMETHYST_ARROW_ENTITY.get(), SagittaryClient.AmethystArrowRenderer::new);
-        event.registerEntityRenderer(ObjectRegistry.COMPONENT_ARROW_ENTITY.get(), SagittaryClient.ComponentArrowRenderer::new);
+        event.registerEntityRenderer(ObjectRegistry.COMPONENT_ARROW_ENTITY.get(), net.vg.sagittary.client.ComponentArrowRenderer::new);
     }
 
     private void registerTooltipComponents(RegisterClientTooltipComponentFactoriesEvent event) {

@@ -1,0 +1,89 @@
+import groovy.json.JsonSlurper
+import java.util.zip.ZipFile
+
+// Optional development runtimes only: never compile, publish, or jar-in-jar.
+// Local overrides belong in ignored gradle.local.properties, Gradle -P settings,
+// or SPELUNKERY_DEV_ROOT. No machine-specific path belongs in the matrix.
+def local = new Properties()
+def localFile = rootProject.file('gradle.local.properties')
+if (localFile.isFile()) localFile.withInputStream { local.load(it) }
+def option = { String name, String fallback ->
+    providers.gradleProperty(name).orNull ?: local.getProperty(name) ?: fallback
+}
+
+ext.configureDevIntegrations = { Properties matrix, boolean legacy ->
+    def runtime = legacy ? 'modLocalRuntime' : 'localRuntime'
+    def reportSpelunkery = { logger.lifecycle("${project.path}: local Spelunkery development runtime disabled.") }
+    tasks.register('verifyDevIntegrations') {
+        group = 'verification'
+        description = 'Resolve and report optional development jars without starting Minecraft.'
+        doLast {
+            reportSpelunkery()
+            def jars = configurations.getByName(runtime).files.collect { it.name }.sort()
+            logger.lifecycle("${project.path}: optional development runtime jars: ${jars}")
+        }
+    }
+    if (!option('dev_integrations', 'true').toBoolean()) return
+    if (option('trinkets_dev', 'true').toBoolean() && matrix.getProperty('trinkets_dev_version')) {
+        def slug = matrix.getProperty('trinkets_mod_id').replace('_', '-')
+        def module = matrix.getProperty('trinkets_dev_module', "maven.modrinth:${slug}")
+        if (module == 'dev.emi:trinkets') {
+            // Original Trinkets' author-published metadata supplies its CCA
+            // base/entity dependencies. Modrinth Maven has no dependency graph,
+            // and Loom development runs cannot rely on the jar's nested mods.
+            repositories.maven {
+                name = 'Trinkets'
+                url = 'https://maven.terraformersmc.com/releases/'
+                content { includeModule('dev.emi', 'trinkets') }
+            }
+            repositories.maven {
+                name = 'CardinalComponents'
+                url = 'https://maven.ladysnake.org/releases/'
+                content { includeGroup('org.ladysnake.cardinal-components-api') }
+            }
+        }
+        dependencies.add(runtime, "${module}:${matrix.trinkets_dev_version}")
+    }
+    if (!option('spelunkery_dev', 'true').toBoolean()) return
+
+    def configuredRoot = option('spelunkery_dev_root', System.getenv('SPELUNKERY_DEV_ROOT') ?: '../spelunkery')
+    def spelunkeryRoot = rootProject.file(configuredRoot)
+    def artifacts = new File(spelunkeryRoot, "build/libs/${project.name}")
+    def candidates = (artifacts.listFiles() ?: []).findAll { file ->
+        file.isFile() && file.name.endsWith('.jar')
+                && !(file.name ==~ /.*-(sources|javadoc|dev|dev-shadow|raw)\.jar/)
+    }.sort { it.name }
+    // Validate loader metadata, not an assumed archive name. Multiple installed
+    // releases are ambiguous; don't silently load whichever happened to be newer.
+    def matches = candidates.findAll { file ->
+        try {
+            new ZipFile(file).withCloseable { jar ->
+                if (matrix.loader == 'fabric') {
+                    def entry = jar.getEntry('fabric.mod.json')
+                    if (!entry) return false
+                    def meta = new JsonSlurper().parse(jar.getInputStream(entry))
+                    return meta.id == 'spelunkery' && meta.depends?.minecraft == matrix.minecraft_version
+                }
+                def entry = jar.getEntry('META-INF/neoforge.mods.toml')
+                if (!entry) return false
+                def text = jar.getInputStream(entry).getText('UTF-8')
+                return text.contains('modId = "spelunkery"')
+                        && text.contains("versionRange = \"[${matrix.minecraft_version}]\"")
+            }
+        } catch (IOException ignored) {
+            return false
+        }
+    }
+    if (matches.size() == 1) dependencies.add(runtime, files(matches.first()))
+    reportSpelunkery = {
+        if (matches.size() == 1) {
+            logger.lifecycle("${project.path}: optional local Spelunkery runtime: ${matches.first()}")
+        } else {
+            logger.warn("${project.path}: Spelunkery development integration not loaded: expected one installable ${project.name} jar in ${artifacts}, found ${matches.size()}. "
+                    + "Sagittary can run without it. Build that target in Spelunkery, or set spelunkery_dev_root / SPELUNKERY_DEV_ROOT.")
+        }
+    }
+    tasks.withType(JavaExec).configureEach { run ->
+        if (run.name in ['runClient', 'runServer']) doFirst { reportSpelunkery() }
+    }
+}
