@@ -122,6 +122,9 @@ versions/
 
 # Local secrets
 .env
+.env.*
+!.env.example
 
 # Python wrapper/setup checks
 __pycache__/
+*.py[cod]
