@@ -4,8 +4,10 @@ import net.minecraft.client.gui.Font;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientBundleTooltip;
 import net.minecraft.client.gui.screens.inventory.tooltip.ClientTooltipComponent;
+//? if >=1.21 {
 import net.minecraft.world.item.component.BundleContents;
 import net.vg.sagittary.mixin.BundleContentsAccessor;
+//? }
 import org.apache.commons.lang3.math.Fraction;
 
 /** 1.21 tooltips contain ItemStacks and a Fraction, and render immediately. */
@@ -15,10 +17,16 @@ public class QuiverTooltipRenderer implements ClientTooltipComponent {
 
     public QuiverTooltipRenderer(QuiverTooltip tooltip) {
         selectedIndex = tooltip.selectedIndex();
+        //? if >=1.21 {
         BundleContents contents = new BundleContents(tooltip.items());
         ((BundleContentsAccessor) (Object) contents).sagittary$setWeight(
                 Fraction.getFraction(Math.round(tooltip.fullness() * 100), 100));
         delegate = new ClientBundleTooltip(contents);
+        //? } else {
+        /*var items = net.minecraft.core.NonNullList.<net.minecraft.world.item.ItemStack>create();
+        items.addAll(tooltip.items());
+        delegate = new ClientBundleTooltip(new net.minecraft.world.inventory.tooltip.BundleTooltip(items, Math.round(tooltip.fullness() * 64)));
+        *///? }
     }
 
     @Override

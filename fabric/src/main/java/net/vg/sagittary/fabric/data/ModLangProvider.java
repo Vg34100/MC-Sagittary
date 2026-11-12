@@ -12,11 +12,19 @@ import java.util.stream.Collectors;
 
 public class ModLangProvider extends FabricLanguageProvider {
     protected ModLangProvider(FabricPackOutput dataOutput, CompletableFuture<HolderLookup.Provider> registryLookup) {
+        //? if >=1.21 {
         super(dataOutput, registryLookup);
+        //? } else {
+        /*super(dataOutput);
+        *///? }
     }
 
     @Override
+    //? if >=1.21 {
     public void generateTranslations(HolderLookup.Provider registryLookup, TranslationBuilder translationBuilder) {
+    //? } else {
+    /*public void generateTranslations(TranslationBuilder translationBuilder) {
+    *///? }
         // REMOVED: Amethyst arrow is now part of the component system
         // translationBuilder.add(ObjectRegistry.AMETHYST_ARROW_ITEM.get().asItem(), "Amethyst Arrow");
 

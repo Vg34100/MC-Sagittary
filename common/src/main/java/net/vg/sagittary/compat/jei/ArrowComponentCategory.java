@@ -20,7 +20,7 @@ import net.vg.sagittary.component.ArrowComponent;
  */
 public class ArrowComponentCategory implements IRecipeCategory<ArrowComponentRecipe> {
     public static final RecipeType<ArrowComponentRecipe> TYPE = RecipeType.create(Sagittary.MOD_ID, "arrow_components", ArrowComponentRecipe.class);
-    public static final Identifier UID = Identifier.fromNamespaceAndPath(Sagittary.MOD_ID, "arrow_components");
+    public static final Identifier UID = net.vg.sagittary.util.ModIds.of("arrow_components");
 
     private static final int WIDTH = 18;
     private static final int HEIGHT = 18;

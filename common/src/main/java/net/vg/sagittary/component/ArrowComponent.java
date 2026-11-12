@@ -32,7 +32,13 @@ public enum ArrowComponent {
     STICK_SHAFT("stick", ComponentType.SHAFT, Items.STICK, 1.0f, 0.0f, StickShaftEffect::new),
     BAMBOO_SHAFT("bamboo", ComponentType.SHAFT, Items.BAMBOO, 1.0f, 0.90f, BambooShaftEffect::new),
     BLAZE_ROD_SHAFT("blaze_rod", ComponentType.SHAFT, Items.BLAZE_ROD, 1.1f, 0.0f, BlazeRodShaftEffect::new),
+    //? if >=1.21 {
     BREEZE_ROD_SHAFT("breeze_rod", ComponentType.SHAFT, Items.BREEZE_ROD, 0.9f, 0.2f, BreezeRodShaftEffect::new),
+    //? } else {
+    /*// Keep the serialized component ID/effect; this vanilla ingredient does
+    // not exist before 1.21, so crafting/JEI must not offer an AIR ingredient.
+    BREEZE_ROD_SHAFT("breeze_rod", ComponentType.SHAFT, Items.AIR, 0.9f, 0.2f, BreezeRodShaftEffect::new),
+    *///? }
     BONE_SHAFT("bone", ComponentType.SHAFT, Items.BONE, 1.15f, 0.0f, BoneShaftEffect::new),
 
     // Fletching
@@ -62,7 +68,7 @@ public enum ArrowComponent {
         this.materialName = materialName;
         this.type = type;
         this.craftingItem = null;
-        this.optionalCraftingItemId = Identifier.parse(craftingItemId);
+        this.optionalCraftingItemId = net.vg.sagittary.util.ModIds.parse(craftingItemId);
         this.damageModifier = damageModifier;
         this.speedModifier = speedModifier;
         this.effectSupplier = effectSupplier;

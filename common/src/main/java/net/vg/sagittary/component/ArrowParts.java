@@ -2,9 +2,11 @@ package net.vg.sagittary.component;
 
 import com.mojang.serialization.Codec;
 import com.mojang.serialization.codecs.RecordCodecBuilder;
+//? if >=1.21 {
 import net.minecraft.network.RegistryFriendlyByteBuf;
 import net.minecraft.network.codec.ByteBufCodecs;
 import net.minecraft.network.codec.StreamCodec;
+//? }
 
 /**
  * Data component representing the three parts of a component arrow.
@@ -20,12 +22,14 @@ public record ArrowParts(String tip, String shaft, String fletching) {
         ).apply(instance, ArrowParts::new)
     );
     
+    //? if >=1.21 {
     public static final StreamCodec<RegistryFriendlyByteBuf, ArrowParts> STREAM_CODEC = StreamCodec.composite(
         ByteBufCodecs.STRING_UTF8, ArrowParts::tip,
         ByteBufCodecs.STRING_UTF8, ArrowParts::shaft,
         ByteBufCodecs.STRING_UTF8, ArrowParts::fletching,
         ArrowParts::new
     );
+    //? }
     
     /**
      * Creates ArrowParts from ArrowComponent instances

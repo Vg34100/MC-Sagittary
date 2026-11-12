@@ -67,7 +67,7 @@ public class CompoundBowItem extends BowItem {
             return false;
         }
 
-        int useDuration = this.getUseDuration(stack, entity) - timeLeft;
+        int useDuration = net.vg.sagittary.util.WeaponCompatibility.useDuration(stack, entity) - timeLeft;
         float power = getPowerForTime(useDuration);
         if (power < 0.1F) {
             return false;
@@ -78,8 +78,7 @@ public class CompoundBowItem extends BowItem {
             ItemStack singleArrow = arrowStack.copyWithCount(1);
 
             // Check infinity enchantment - processAmmoUse returns 0 if infinity applies
-            int ammoToConsume = EnchantmentHelper.processAmmoUse(serverLevel, stack, singleArrow, 1);
-            boolean hasInfinity = player.hasInfiniteMaterials() || ammoToConsume == 0;
+            boolean hasInfinity = net.vg.sagittary.util.WeaponCompatibility.infiniteAmmo(serverLevel, stack, singleArrow, player);
 
             int arrowsToShoot = Math.min(3, hasInfinity ? 3 : arrowStack.getCount());
             if (arrowsToShoot <= 0) {
@@ -106,7 +105,7 @@ public class CompoundBowItem extends BowItem {
 
             // Damage the bow
             EquipmentSlot slot = entity.getUsedItemHand() == InteractionHand.MAIN_HAND ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND;
-            stack.hurtAndBreak(1, player, slot);
+            net.vg.sagittary.util.WeaponCompatibility.damage(stack, player, slot);
         }
 
         level.playSound(null, player.getX(), player.getY(), player.getZ(),
@@ -121,7 +120,7 @@ public class CompoundBowItem extends BowItem {
                            ArrowItem arrowItem, float power, float angleOffset, boolean hasInfinity) {
         // Pass single-item copy to prevent pickup duplication
         ItemStack singleArrow = arrowStack.copyWithCount(1);
-        AbstractArrow arrow = arrowItem.createArrow(level, singleArrow, player, bow);
+        AbstractArrow arrow = net.vg.sagittary.util.WeaponCompatibility.createArrow(arrowItem, level, singleArrow, player, bow);
 
         arrow.shootFromRotation(player, player.getXRot(), player.getYRot() + angleOffset,
                 0.0F, power * 3.0F, 1.0F);
@@ -142,7 +141,11 @@ public class CompoundBowItem extends BowItem {
     }
 
     @Override
+    //? if >=1.21 {
     public int getUseDuration(ItemStack stack, LivingEntity entity) {
+    //? } else {
+    /*public int getUseDuration(ItemStack stack) {
+    *///? }
         return 72000; // Same as regular bow
     }
 

@@ -21,6 +21,9 @@ import net.vg.sagittary.item.ComponentArrowItem;
 import net.vg.sagittary.registry.ObjectRegistry;
 
 public class ComponentArrowEntity extends AbstractArrow {
+    //? if <1.21 {
+    /*public net.minecraft.util.RandomSource getRandom() { return this.random; }
+    *///? }
     private static final EntityDataAccessor<String> TIP_COMPONENT = SynchedEntityData.defineId(ComponentArrowEntity.class, EntityDataSerializers.STRING);
     private static final EntityDataAccessor<String> SHAFT_COMPONENT = SynchedEntityData.defineId(ComponentArrowEntity.class, EntityDataSerializers.STRING);
     private static final EntityDataAccessor<String> FLETCHING_COMPONENT = SynchedEntityData.defineId(ComponentArrowEntity.class, EntityDataSerializers.STRING);
@@ -47,7 +50,11 @@ public class ComponentArrowEntity extends AbstractArrow {
 
     // Constructor for dispensers (no LivingEntity shooter)
     public ComponentArrowEntity(Level level, double x, double y, double z, ItemStack pickupItemStack, ItemStack firedFromWeapon) {
+        //? if >=1.21 {
         super(ObjectRegistry.COMPONENT_ARROW_ENTITY.get(), x, y, z, level, pickupItemStack, firedFromWeapon);
+        //? } else {
+        /*super(ObjectRegistry.COMPONENT_ARROW_ENTITY.get(), x, y, z, level);
+        *///? }
 
         // Store the original ItemStack for component loading
         this.originalPickupStack = pickupItemStack.copy();
@@ -59,16 +66,26 @@ public class ComponentArrowEntity extends AbstractArrow {
     }
 
     public ComponentArrowEntity(Level level, LivingEntity shooter, ItemStack pickupItemStack, ItemStack firedFromWeapon) {
+        //? if >=1.21 {
         super(ObjectRegistry.COMPONENT_ARROW_ENTITY.get(), shooter, level, pickupItemStack, firedFromWeapon);
+        //? } else {
+        /*super(ObjectRegistry.COMPONENT_ARROW_ENTITY.get(), shooter, level);
+        *///? }
         this.originalPickupStack = pickupItemStack.copy();
         if (pickupItemStack.getItem() instanceof ComponentArrowItem) {
             loadComponentsFromStack(pickupItemStack);
         }
     }
 
+    //? if >=1.21 {
     @Override
+    //? }
     protected void setPickupItemStack(ItemStack itemStack) {
+        //? if >=1.21 {
         super.setPickupItemStack(itemStack);
+        //? } else {
+        /*originalPickupStack = itemStack.copyWithCount(1);
+        *///? }
         if (itemStack.getItem() instanceof ComponentArrowItem) {
             loadComponentsFromStack(itemStack);
         }
@@ -132,11 +149,15 @@ public class ComponentArrowEntity extends AbstractArrow {
         }
 
         // Server-side: reload from ItemStack if it has valid component data
+        //? if >=1.21 {
         ItemStack stack = this.getPickupItemStackOrigin();
+        //? } else {
+        /*ItemStack stack = originalPickupStack;
+        *///? }
         if (stack != null
                 && !stack.isEmpty()
                 && stack.getItem() instanceof ComponentArrowItem
-                && stack.has(ObjectRegistry.ARROW_PARTS.get())) {
+                && ComponentArrowItem.hasArrowParts(stack)) {
             this.tipComponent = ComponentArrowItem.getTipFromStack(stack);
             this.shaftComponent = ComponentArrowItem.getShaftFromStack(stack);
             this.fletchingComponent = ComponentArrowItem.getFletchingFromStack(stack);
@@ -147,12 +168,21 @@ public class ComponentArrowEntity extends AbstractArrow {
     }
 
     @Override
+    //? if >=1.21 {
     protected void defineSynchedData(SynchedEntityData.Builder builder) {
         super.defineSynchedData(builder);
         builder.define(TIP_COMPONENT, ArrowComponent.FLINT_TIP.getMaterialName());
         builder.define(SHAFT_COMPONENT, ArrowComponent.STICK_SHAFT.getMaterialName());
         builder.define(FLETCHING_COMPONENT, ArrowComponent.FEATHER_FLETCHING.getMaterialName());
     }
+    //? } else {
+    /*protected void defineSynchedData() {
+        super.defineSynchedData();
+        entityData.define(TIP_COMPONENT, "flint");
+        entityData.define(SHAFT_COMPONENT, "stick");
+        entityData.define(FLETCHING_COMPONENT, "feather");
+    }
+    *///? }
 
     @Override
     public void onSyncedDataUpdated(EntityDataAccessor<?> key) {
@@ -214,6 +244,14 @@ public class ComponentArrowEntity extends AbstractArrow {
 
         // Only run effects when arrow is still in flight
         if (!this.isArrowInGround()) {
+            //? if <1.21 {
+            /*// 1.20.1 hard-codes gravity in AbstractArrow.tick; correct that
+            // single acceleration after vanilla movement, without changing drag.
+            if (!isNoGravity()) {
+                double multiplier = tipEffect.getGravityModifier(this) * shaftEffect.getGravityModifier(this) * fletchingEffect.getGravityModifier(this);
+                setDeltaMovement(getDeltaMovement().add(0, 0.05 * (1 - multiplier), 0));
+            }
+            *///? }
             this.tipEffect.onTick(this);
             this.shaftEffect.onTick(this);
             this.fletchingEffect.onTick(this);
@@ -272,7 +310,11 @@ public class ComponentArrowEntity extends AbstractArrow {
     }
 
     @Override
+    //? if >=1.21 {
     protected ItemStack getDefaultPickupItem() {
+    //? } else {
+    /*protected ItemStack getPickupItem() {
+    *///? }
         // During initialization, effects might not be ready yet
         if (this.tipEffect != null && this.shaftEffect != null && this.fletchingEffect != null) {
             // Check if any effect prevents pickup
@@ -309,6 +351,9 @@ public class ComponentArrowEntity extends AbstractArrow {
         compound.putString("FletchingComponent", this.fletchingComponent.getMaterialName());
         compound.putInt("BounceCount", this.bounceCount);
         compound.putInt("PierceCount", this.pierceCount);
+        //? if <1.21 {
+        /*if (!originalPickupStack.isEmpty()) compound.put("sagittary:pickup", originalPickupStack.save(new CompoundTag()));
+        *///? }
     }
 
     @Override
@@ -318,6 +363,10 @@ public class ComponentArrowEntity extends AbstractArrow {
     /*public void readAdditionalSaveData(CompoundTag compound) {
     *///? }
         super.readAdditionalSaveData(compound);
+        //? if <1.21 {
+        /*if (compound.contains("sagittary:pickup", net.minecraft.nbt.Tag.TAG_COMPOUND))
+            originalPickupStack = ItemStack.of(compound.getCompound("sagittary:pickup"));
+        *///? }
 
         readString(compound, "TipComponent").ifPresent(tipName -> {
             this.tipComponent = ArrowComponent.getByMaterialAndType(tipName, ArrowComponent.ComponentType.TIP);
@@ -395,6 +444,7 @@ public class ComponentArrowEntity extends AbstractArrow {
         *///? }
     }
 
+    //? if >=1.21 {
     @Override
     protected double getDefaultGravity() {
         // Skip gravity modifiers when in ground - use vanilla gravity for proper settling
@@ -409,4 +459,5 @@ public class ComponentArrowEntity extends AbstractArrow {
                                      fletchingEffect.getGravityModifier(this);
         return baseGravity * totalGravityModifier;
     }
+    //? }
 }

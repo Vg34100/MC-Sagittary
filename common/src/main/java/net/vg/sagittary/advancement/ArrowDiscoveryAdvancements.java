@@ -1,6 +1,5 @@
 package net.vg.sagittary.advancement;
 
-import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.advancements.AdvancementProgress;
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
@@ -10,17 +9,22 @@ import net.vg.sagittary.registry.ObjectRegistry;
 
 /** Persistent unique-arrow discovery is stored in a hidden advancement, while the visible Arsenal has 16 milestones. */
 public final class ArrowDiscoveryAdvancements {
-    private static final Identifier TRACKING = Identifier.fromNamespaceAndPath("sagittary", "arsenal_tracking");
-    private static final Identifier ARSENAL = Identifier.fromNamespaceAndPath("sagittary", "arsenal");
+    private static final Identifier TRACKING = net.vg.sagittary.util.ModIds.of("arsenal_tracking");
+    private static final Identifier ARSENAL = net.vg.sagittary.util.ModIds.of("arsenal");
 
     private ArrowDiscoveryAdvancements() {}
 
     public static void recordCraft(ServerPlayer player, ItemStack result) {
         if (!result.is(ObjectRegistry.COMPONENT_ARROW_ITEM.get())) return;
-        ArrowParts parts = result.get(ObjectRegistry.ARROW_PARTS.get());
-        if (parts == null) return;
-        AdvancementHolder tracking = player.level().getServer().getAdvancements().get(TRACKING);
-        AdvancementHolder arsenal = player.level().getServer().getAdvancements().get(ARSENAL);
+        if (!net.vg.sagittary.item.ComponentArrowItem.hasArrowParts(result)) return;
+        ArrowParts parts = net.vg.sagittary.item.ComponentArrowItem.getArrowPartsFromStack(result);
+        //? if >=1.21 {
+        var tracking = player.level().getServer().getAdvancements().get(TRACKING);
+        var arsenal = player.level().getServer().getAdvancements().get(ARSENAL);
+        //? } else {
+        /*var tracking = player.level().getServer().getAdvancements().getAdvancement(TRACKING);
+        var arsenal = player.level().getServer().getAdvancements().getAdvancement(ARSENAL);
+        *///? }
         if (tracking == null || arsenal == null) return;
         String key = parts.tip() + "_" + parts.shaft() + "_" + parts.fletching();
         if (!player.getAdvancements().award(tracking, key)) return;

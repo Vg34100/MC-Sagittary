@@ -14,7 +14,7 @@ This file defines the default agent workflow for Sagittary and for maintenance o
 
 ## Repository Model
 
-Sagittary is a Stonecutter multiversion project with canonical `common/`, `fabric/`, and `neoforge/` source trees.
+Sagittary is a Stonecutter multiversion project with canonical `common/`, `fabric/`, `forge/`, and `neoforge/` source trees. Forge owns the 1.20.1 loader lifecycle; it is not NeoForge.
 
 The exact target matrix is discovered from:
 

@@ -22,7 +22,9 @@ import net.minecraft.world.item.component.BundleContents;
 import net.minecraft.world.item.component.TooltipDisplay;
 //? }
 import net.minecraft.world.level.Level;
+//? if <26.3 {
 import net.vg.sagittary.mixin.BundleContentsMutableAccessor;
+//? }
 import net.vg.sagittary.compat.trinkets.TrinketsCompat;
 import net.vg.sagittary.registry.ObjectRegistry;
 import net.vg.sagittary.component.QuiverSelection;
@@ -181,6 +183,15 @@ public class QuiverItem extends Item {
      * Build BundleContents from a list of items, bypassing weight limits.
      */
     private static BundleContents buildContentsFromList(List<ItemStack> items, int selectedIndex) {
+        //? if >=26.3 {
+        /*BundleContents contents = new BundleContents(items.stream().filter(stack -> !stack.isEmpty())
+                .map(net.minecraft.world.item.ItemStackTemplate::fromNonEmptyStack).toList());
+        var accessor = (net.vg.sagittary.mixin.BundleContentsAccessor) (Object) contents;
+        Fraction weight = ARROW_WEIGHT.multiplyBy(Fraction.getFraction(items.stream().mapToInt(ItemStack::getCount).sum(), 1));
+        accessor.sagittary$setWeight(() -> com.mojang.serialization.DataResult.success(weight));
+        accessor.sagittary$setSelectedItem(selectedIndex);
+        return contents;
+        *///? } else {
         BundleContents.Mutable mutable = new BundleContents.Mutable(BundleContents.EMPTY);
         BundleContentsMutableAccessor accessor = (BundleContentsMutableAccessor) mutable;
 
@@ -206,10 +217,23 @@ public class QuiverItem extends Item {
         //? }
 
         return mutable.toImmutable();
+        //? }
     }
 
     private static List<ItemStack> copyItems(BundleContents contents) {
-        return new ArrayList<>(contents.itemCopyStream().toList());
+        return new ArrayList<>(streamContents(contents).toList());
+    }
+
+    public static java.util.stream.Stream<ItemStack> streamContents(BundleContents contents) {
+        //? if >=26.3 {
+        /*return contents.itemCopies();
+        *///? } else {
+        return contents.itemCopyStream();
+        //? }
+    }
+
+    public static List<ItemStack> getArrowStacks(ItemStack quiver) {
+        return copyItems(quiver.getOrDefault(DataComponents.BUNDLE_CONTENTS, BundleContents.EMPTY));
     }
 
     /** Preserve the selected type through insertion/reordering, or repair it after depletion. */
@@ -248,7 +272,11 @@ public class QuiverItem extends Item {
         if (contents != null && !contents.isEmpty()) {
             for (ItemStack removed : copyItems(contents)) {
                 if (!player.addItem(removed)) {
+                    //? if >=26.3 {
+                    /*player.drop(removed, true, net.minecraft.util.Prediction.SERVER_ONLY);
+                    *///? } else {
                     player.drop(removed, true);
+                    //? }
                 }
             }
 
@@ -283,7 +311,7 @@ public class QuiverItem extends Item {
     public static int getDistinctArrowTypes(BundleContents contents) {
         if (contents == null) return 0;
         List<ItemStack> types = new ArrayList<>();
-        contents.itemCopyStream().forEach(stack -> {
+        streamContents(contents).forEach(stack -> {
             if (types.stream().noneMatch(existing -> ItemStack.isSameItemSameComponents(existing, stack))) {
                 types.add(stack);
             }
@@ -295,7 +323,7 @@ public class QuiverItem extends Item {
     public static boolean canAcceptArrow(BundleContents contents, ItemStack arrow, ItemStack quiver) {
         if (!isValidArrow(arrow) || getTotalArrowCount(contents) >= getCapacity(quiver)) return false;
         if (contents == null || !(quiver.getItem() instanceof QuiverItem item) || !item.tier.hasTypeLimit()) return true;
-        boolean alreadyPresent = contents.itemCopyStream()
+        boolean alreadyPresent = streamContents(contents)
                 .anyMatch(existing -> ItemStack.isSameItemSameComponents(existing, arrow));
         return alreadyPresent || getDistinctArrowTypes(contents) < getTypeLimit(quiver);
     }
@@ -368,7 +396,7 @@ public class QuiverItem extends Item {
             return ItemStack.EMPTY;
         }
 
-        List<ItemStack> items = contents.itemCopyStream().toList();
+        List<ItemStack> items = streamContents(contents).toList();
         int index = getSelectedIndex(quiver);
         return index < 0 ? ItemStack.EMPTY : items.get(index);
     }
@@ -385,7 +413,7 @@ public class QuiverItem extends Item {
      */
     public static int getTotalArrowCount(BundleContents contents) {
         if (contents == null || contents.isEmpty()) return 0;
-        return contents.itemCopyStream()
+        return streamContents(contents)
                 .mapToInt(ItemStack::getCount)
                 .sum();
     }
@@ -405,7 +433,7 @@ public class QuiverItem extends Item {
 
         // Get the items as a mutable list
         List<ItemStack> items = new ArrayList<>();
-        contents.itemCopyStream().forEach(items::add);
+        streamContents(contents).forEach(items::add);
 
         if (items.isEmpty()) {
             return ItemStack.EMPTY;
@@ -546,7 +574,7 @@ public class QuiverItem extends Item {
 
         // Get items as a list
         List<ItemStack> items = new ArrayList<>();
-        contents.itemCopyStream().forEach(items::add);
+        streamContents(contents).forEach(items::add);
 
         int selected = getSelectedIndex(quiver);
         if (selected < 0) return;
@@ -572,7 +600,7 @@ public class QuiverItem extends Item {
     public static int getSelectedIndex(ItemStack quiver) {
         BundleContents contents = quiver.get(DataComponents.BUNDLE_CONTENTS);
         if (contents == null || contents.isEmpty()) return -1;
-        List<ItemStack> items = contents.itemCopyStream().toList();
+        List<ItemStack> items = streamContents(contents).toList();
         QuiverSelection selection = quiver.get(ObjectRegistry.QUIVER_SELECTION.get());
         ItemStack selected = selection == null ? ItemStack.EMPTY : selection.arrow();
         int index = indexOf(items, selected);

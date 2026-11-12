@@ -26,7 +26,11 @@ public class ModLootProvider extends FabricBlockLootSubProvider {
 /*public class ModLootProvider extends FabricBlockLootTableProvider {
 *///? }
     protected ModLootProvider(FabricPackOutput dataOutput, CompletableFuture<HolderLookup.Provider> registryLookup) {
+        //? if >=1.21 {
         super(dataOutput, registryLookup);
+        //? } else {
+        /*super(dataOutput);
+        *///? }
     }
 
     @Override

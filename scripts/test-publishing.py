@@ -45,7 +45,7 @@ class PublishingSafety(unittest.TestCase):
         self.assertEqual({r["target"] for r in data["entries"]}, {p.stem for p in (ROOT / 'gradle/matrix').glob('*.properties')})
         self.assertEqual(len({r['version_number'] for r in data['entries']}), len(data['entries']))
         for row in data['entries']:
-            loader = {'fabric': 'Fabric', 'neoforge': 'NeoForge'}[row['loader']]
+            loader = {'fabric': 'Fabric', 'forge': 'Forge', 'neoforge': 'NeoForge'}[row['loader']]
             self.assertEqual(row['version_name'], f"[{loader}] Sagittary {data['mod_version']} ({row['minecraft']})")
             mods = {d['mod_id'] for d in row['dependencies']}
             self.assertFalse(any('cardinal' in d for d in mods))

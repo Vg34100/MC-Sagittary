@@ -26,8 +26,13 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 *///? }
 public class FletchingTableBlockMixin {
     
+    //? if >=1.21 {
     @Inject(method = "useWithoutItem", at = @At("HEAD"), cancellable = true)
     private void onUseWithoutItem(BlockState blockState, Level level, BlockPos blockPos, Player player, BlockHitResult blockHitResult, CallbackInfoReturnable<InteractionResult> cir) {
+    //? } else {
+    /*@Inject(method = "use", at = @At("HEAD"), cancellable = true)
+    private void onUseWithoutItem(BlockState blockState, Level level, BlockPos blockPos, Player player, net.minecraft.world.InteractionHand hand, BlockHitResult blockHitResult, CallbackInfoReturnable<InteractionResult> cir) {
+    *///? }
         if (!blockState.is(Blocks.FLETCHING_TABLE)) {
             return;
         }

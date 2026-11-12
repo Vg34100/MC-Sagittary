@@ -791,9 +791,9 @@ def plan(project, task_arg):
 
     if task_arg.startswith("smoke-release-client:"):
         name = task_arg.split(":", 1)[1]
-        selected = [t for t in project.targets if t.name == name and t.loader in ("fabric", "neoforge")]
+        selected = [t for t in project.targets if t.name == name and t.loader in ("fabric", "forge", "neoforge")]
         if not selected:
-            raise PlanError("Packaged client smoke needs an exact registered Fabric/NeoForge target")
+            raise PlanError("Packaged client smoke needs an exact registered Fabric/Forge/NeoForge target")
         return "release-client", selected
 
     if task_arg == "release-smoke":
@@ -910,13 +910,15 @@ def main(argv=None):
         run_dir = Path(tempfile.gettempdir()) / "sagittary-release-smoke" / target.name / uuid.uuid4().hex
         log_dir = run_dir
         neoforge = None
-        if target.loader == "neoforge":
+        if target.loader in ("forge", "neoforge"):
             try:
                 run_dir, native_root, executable = smoke["neoforge_paths"](target.name, log_dir.name)
             except (OSError, RuntimeError, subprocess.SubprocessError) as error:
-                print(f"ERROR: NeoForge production launcher prerequisites: {error}")
+                print(f"ERROR: {target.loader} production launcher prerequisites: {error}")
                 return 2
-            neoforge = (native_root, executable, target.props["neoforge_version"])
+            version = ("forge::" + target.version + "-" + target.props["forge_version"]
+                       if target.loader == "forge" else target.props["neoforge_version"])
+            neoforge = (native_root, executable, version)
         client_tasks = [f":{target.name}:runReleaseClient", f"-Prelease_smoke_dir={run_dir}"] + extra_args
         if neoforge:
             client_tasks[0] = f":{target.name}:stageReleaseClient"

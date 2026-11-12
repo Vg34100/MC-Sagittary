@@ -21,6 +21,7 @@ def minecraftVersion = required('minecraft_version')
 def javaVersion = required('java_version') as int
 def legacy = required('loom_generation') == 'legacy'
 def isFabric = loader == 'fabric'
+def isForge = loader == 'forge'
 
 apply from: rootProject.file('gradle/source-compat.gradle')
 
@@ -29,7 +30,8 @@ version = rootProject.mod_version
 apply plugin: legacy ? 'dev.architectury.loom' : 'dev.architectury.loom-no-remap'
 // Each node already owns common + loader sources. Architectury API remains a
 // dependency, but no common-project transformation/Gradle plugin is required.
-if (!isFabric) loom { neoForge {} }
+if (loader == 'neoforge') loom { neoForge {} }
+if (isForge) loom { forge { mixinConfig 'sagittary.mixins.json' } }
 if (legacy) loom { silentMojangMappingsLicense() }
 
 base { archivesName = "${rootProject.archives_name}-${loader}-${minecraftVersion}" }
@@ -37,6 +39,7 @@ repositories {
     maven { url 'https://maven.blamejared.com/' }
     maven { url 'https://maven.neoforged.net/releases/' }
     maven { url 'https://api.modrinth.com/maven' }
+    maven { url 'https://maven.minecraftforge.net/' }
 }
 
 sourceSets.main {
@@ -54,17 +57,36 @@ sourceSets.main {
 // Stonecutter's default pipeline assumes a single root src/. Feed its native
 // preparer our canonical trees instead; no Java text rewriting happens here.
 def processedJava = layout.buildDirectory.dir('stonecutter/changes')
+def omittedJava = minecraftVersion == '1.20.1' ? [
+        'net/vg/sagittary/mixin/BundleContentsAccessor.java',
+        'net/vg/sagittary/mixin/BundleContentsMutableAccessor.java',
+        'net/vg/sagittary/mixin/client/BundleMouseActionsMixin.java'
+] : []
+// Ordered, real implementations: 1.20.1 only overrides what NBT/old lifecycles
+// cannot share with the existing 1.21 compatibility view.
+def compatGenerations = legacy ? ['legacy'] : []
+if (minecraftVersion == '1.20.1') compatGenerations.add('1.20.1')
+if (stonecutter.eval(minecraftVersion, '>=26.3')) compatGenerations.add('26.3')
 def compatRoots = ['common', loader].collectEntries { tree ->
-    [(tree): rootProject.file("gradle/compat/legacy/${tree}")]
+    [(tree): compatGenerations.collect { rootProject.file("gradle/compat/${it}/${tree}") }]
+}
+def relativeJava = { File dir ->
+    def paths = [] as Set
+    if (dir.isDirectory()) fileTree(dir).visit { e ->
+        if (!e.directory && e.path.endsWith('.java')) paths.add(e.path)
+    }
+    paths
 }
 def overrides = compatRoots.collectEntries { tree, dir ->
-    def paths = [] as Set
-    if (legacy && dir.isDirectory()) {
-        fileTree(dir).visit { element ->
-            if (!element.directory && element.path.endsWith('.java')) paths.add(element.path)
-        }
+    [(tree): dir.collectMany { relativeJava(it) }.toSet()]
+}
+def compatibilitySources = []
+compatRoots.each { tree, dirs ->
+    dirs.eachWithIndex { dir, index ->
+        def later = dirs.drop(index + 1).collectMany { relativeJava(it) }.toSet()
+        compatibilitySources.add([tree: tree, dir: dir, excluded: later,
+                path: rootProject.relativePath(dir)])
     }
-    [(tree): paths]
 }
 def prepareJava = stonecutter.tasks.prepare.get('main')
 prepareJava.configure {
@@ -73,9 +95,13 @@ prepareJava.configure {
         rootProject.fileTree("${tree}/src/main/java") {
             include '**/*.java'
             exclude overrides[tree]
+            exclude omittedJava
         }
     })
-    if (legacy) source.from(compatRoots.values().collect { dir -> fileTree(dir) { include '**/*.java' } })
+    source.from(compatibilitySources.collect { entry -> fileTree(entry.dir) {
+        include '**/*.java'
+        exclude entry.excluded
+    } })
     destination.set(processedJava)
 }
 stonecutter.tasks.merge.get('main').configure {
@@ -87,21 +113,31 @@ stonecutter.tasks.merge.get('main').configure {
 def generateJava = tasks.register('prepareTargetSources', Sync) {
     dependsOn prepareJava
     into layout.buildDirectory.dir('stonecutter/sources')
-    from(processedJava) { exclude 'gradle/compat/**' }
+    from(processedJava) {
+        exclude 'gradle/compat/**'
+        ['common', loader].each { tree ->
+            exclude((overrides[tree] + omittedJava).collect { "${tree}/src/main/java/${it}" })
+        }
+    }
     ['common', loader].each { tree ->
         from(rootProject.file("${tree}/src/main/java")) {
             into "${tree}/src/main/java"
             exclude overrides[tree]
+            exclude omittedJava
             exclude { element ->
                 new File(processedJava.get().asFile, "${tree}/src/main/java/${element.path}").isFile()
             }
         }
-        if (legacy) {
-            from(processedJava.map { it.dir("gradle/compat/legacy/${tree}") }) { into "${tree}/src/main/java" }
-            from(compatRoots[tree]) {
+        compatibilitySources.findAll { it.tree == tree }.each { entry ->
+            from(processedJava.map { it.dir(entry.path) }) {
                 into "${tree}/src/main/java"
+                exclude entry.excluded
+            }
+            from(entry.dir) {
+                into "${tree}/src/main/java"
+                exclude entry.excluded
                 exclude { element ->
-                    new File(processedJava.get().asFile, "gradle/compat/legacy/${tree}/${element.path}").isFile()
+                    new File(processedJava.get().asFile, "${entry.path}/${element.path}").isFile()
                 }
             }
         }
@@ -133,6 +169,9 @@ dependencies {
     if (isFabric) {
         modDependency("net.fabricmc:fabric-loader:${required('fabric_loader_version')}")
         modDependency("net.fabricmc.fabric-api:fabric-api:${required('fabric_api_version')}")
+    } else if (isForge) {
+        forge "net.minecraftforge:forge:${minecraftVersion}-${required('forge_version')}"
+        compileOnly "net.fabricmc:fabric-loader:${required('fabric_loader_version')}"
     } else {
         neoForge "net.neoforged:neoforge:${required('neoforge_version')}"
         // Common client annotations compile against Fabric Loader on both loaders.
@@ -162,6 +201,8 @@ def metadata = [
     architectury_api_version: required('architectury_api_version'),
     fabric_loader_version: required('fabric_loader_version'),
     neoforge_version: matrix.getProperty('neoforge_version', ''),
+    forge_version: matrix.getProperty('forge_version', ''),
+    fml_loader_major: matrix.getProperty('fml_loader_version', '2').tokenize('.')[0],
     trinkets_mod_id: matrix.getProperty('trinkets_mod_id', ''),
     neoforge_icon_field: stonecutter.eval(minecraftVersion, '>=26.2') ? 'iconFile' : 'logoFile'
 ]
@@ -169,7 +210,7 @@ processResources {
     // Canonical resources take priority over checked-in datagen duplicates.
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
     inputs.properties(metadata)
-    filesMatching(['fabric.mod.json', 'META-INF/neoforge.mods.toml', '*.mixins.json']) { expand(metadata) }
+    filesMatching(['fabric.mod.json', 'META-INF/mods.toml', 'META-INF/neoforge.mods.toml', '*.mixins.json']) { expand(metadata) }
 }
 apply from: rootProject.file('gradle/resource-compat.gradle')
 
@@ -198,6 +239,7 @@ tasks.register('verifyLaunchSetup') {
 }
 
 tasks.named('jar') {
+    if (isForge) manifest.attributes('MixinConfigs': 'sagittary.mixins.json')
     destinationDirectory = rootProject.layout.buildDirectory.dir("libs/${project.name}")
     from(rootProject.file('LICENSE.txt')) { rename { "${it}_${rootProject.archives_name}" } }
 }
@@ -220,7 +262,7 @@ if (providers.gradleProperty('publish_manifest').isPresent()) {
 
 // Stage ordinary installed mods for either production launcher. Dependencies
 // come from their original artifacts, never Loom's remapped development cache.
-if (isFabric || loader == 'neoforge') {
+if (loader in ['fabric', 'forge', 'neoforge']) {
     def smokeRun = layout.dir(providers.gradleProperty('release_smoke_dir').map { rootProject.file(it) })
     def smokeDependencies = configurations.create('releaseSmokeMods') {
         canBeConsumed = false

@@ -47,6 +47,12 @@ jobs:
       - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
         with:
           distribution: temurin
+          java-version: '17'
+      - name: Remember NBT-era toolchain
+        run: echo "JAVA17_HOME=$JAVA_HOME" >> "$GITHUB_ENV"
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
+        with:
+          distribution: temurin
           java-version: '21'
       - name: Remember legacy toolchain
         run: echo "JAVA21_HOME=$JAVA_HOME" >> "$GITHUB_ENV"
@@ -64,7 +70,7 @@ jobs:
       - name: Package matrix
         run: >-
           python build-smart.py matrix:package --max-workers=2
-          "-Porg.gradle.java.installations.paths=$JAVA21_HOME,$JAVA_HOME"
+          "-Porg.gradle.java.installations.paths=$JAVA17_HOME,$JAVA21_HOME,$JAVA_HOME"
         env:
           BUILD_SMART_JAVA_HOME: ${{ env.JAVA_HOME }}
       - name: Verify installable artifacts
@@ -148,6 +154,14 @@ jobs:
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.publish_modrinth }}
         with:
           distribution: temurin
+          java-version: '17'
+      - name: Remember NBT-era toolchain
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.publish_modrinth }}
+        run: echo "JAVA17_HOME=$JAVA_HOME" >> "$GITHUB_ENV"
+      - uses: actions/setup-java@cf277c60eb25467037889841efdb72551f06f6c3 # v4
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.publish_modrinth }}
+        with:
+          distribution: temurin
           java-version: '21'
       - name: Remember legacy toolchain
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.publish_modrinth }}
@@ -162,7 +176,7 @@ jobs:
         if: ${{ github.event_name == 'workflow_dispatch' && inputs.publish_modrinth }}
         run: >-
           python build-smart.py publish:modrinth --confirm --max-workers=2
-          "-Porg.gradle.java.installations.paths=$JAVA21_HOME,$JAVA_HOME"
+          "-Porg.gradle.java.installations.paths=$JAVA17_HOME,$JAVA21_HOME,$JAVA_HOME"
         env:
           BUILD_SMART_JAVA_HOME: ${{ env.JAVA_HOME }}
           MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}

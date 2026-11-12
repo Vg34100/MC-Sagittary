@@ -32,7 +32,7 @@ def neoforge_paths(target, token):
     else:
         powershell = shutil.which('powershell.exe')
         if not powershell or not shutil.which('wslpath'):
-            raise RuntimeError('NeoForge release smoke requires Windows or WSL with Windows interop')
+            raise RuntimeError('Forge/NeoForge release smoke requires Windows or WSL with Windows interop')
         appdata, temporary = subprocess.check_output([
             powershell, '-NoProfile', '-Command',
             '[Console]::OutputEncoding = [Text.UTF8Encoding]::new(); $env:LOCALAPPDATA; [IO.Path]::GetTempPath()'
@@ -86,7 +86,7 @@ def neoforge_command(executable, root, version, legacy):
             '--mc-dir', ntpath.join(root, 'client'), '--jvm-policy', 'mojang',
             '--username', 'NeoSmoke', '--jvm-arg=-Xmx2G',
             '--jvm-arg=-Xlog:' + ('class*' if legacy else 'class+load') + '=info:file=class-load-%p.log',
-            '-vv', 'neoforge::' + version]
+            '-vv', version if '::' in version else 'neoforge::' + version]
 
 
 def staged_release(run_dir, artifact, sha256):

@@ -7,7 +7,7 @@ import net.vg.sagittary.entity.ComponentArrowEntity;
 
 /** Pre-render-state entity renderer. */
 public class ComponentArrowRenderer extends ArrowRenderer<ComponentArrowEntity> {
-    private static final ResourceLocation TEXTURE = ResourceLocation.withDefaultNamespace("textures/entity/projectiles/arrow.png");
+    private static final ResourceLocation TEXTURE = net.vg.sagittary.util.ModIds.of("minecraft", "textures/entity/projectiles/arrow.png");
 
     public ComponentArrowRenderer(EntityRendererProvider.Context context) { super(context); }
 

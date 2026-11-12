@@ -78,7 +78,7 @@ def matrix_problems(root, api):
         required = ("minecraft_version", "loader", "java_version", "loom_generation")
         if any(not props.get(key) for key in required):
             problems.append(f"{path.name}: missing target/version/Java/generation property")
-        elif (props["loader"] not in ("fabric", "neoforge")
+        elif (props["loader"] not in ("fabric", "forge", "neoforge")
               or path.stem != f"{props['minecraft_version']}-{props['loader']}"
               or not re.fullmatch(r"\d[\w.+-]*", props["minecraft_version"])
               or not props["java_version"].isdigit() or int(props["java_version"]) < 8

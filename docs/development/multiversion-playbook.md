@@ -7,12 +7,14 @@ It is deliberately procedural. Each phase has an entry condition, required work,
 The exact matrix belongs to the repository. Examples below use the Sagittary shape:
 
 ```text
+1.20.1    Fabric / Forge
 1.21      Fabric / NeoForge
 1.21.1    Fabric / NeoForge
 26.1      Fabric / NeoForge
 26.1.1    Fabric / NeoForge
 26.1.2    Fabric / NeoForge
 26.2      Fabric / NeoForge
+26.3      Fabric / NeoForge
 ```
 
 Do not make build logic depend on this count. Discover targets from `gradle/matrix/*.properties`.

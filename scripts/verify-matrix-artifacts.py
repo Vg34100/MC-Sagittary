@@ -36,6 +36,8 @@ def inspect(matrix):
     target = matrix.stem
     artifact = release_jar(matrix)
     legacy = pins["loom_generation"] == "legacy"
+    nbt = pins["minecraft_version"] == "1.20.1"
+    forge = pins["loader"] == "forge"
     with ZipFile(artifact) as jar:
         files = set(jar.namelist())
         read_json = lambda name: json.loads(jar.read(name))
@@ -50,7 +52,7 @@ def inspect(matrix):
                         for mixin in data.get(side, []):
                             cls = (data["package"] + "." + mixin).replace(".", "/") + ".class"
                             assert cls in files, f"Missing mixin class: {cls}"
-                if legacy and "/recipe/" in name:
+                if legacy and ("/recipe/" in name or "/recipes/" in name):
                     assert not any(isinstance(data.get(k), str)
                                    for k in ("ingredient", "base", "addition", "template")), name
                     assert not any(isinstance(v, str) for v in data.get("ingredients", [])), name
@@ -68,21 +70,33 @@ def inspect(matrix):
             assert ({"trinkets", "trinkets_updated"} & set(meta["suggests"])) == {pins["trinkets_mod_id"]}
             assert not {"jei", "trinkets", "trinkets_updated", "spelunkery"} & set(meta["depends"])
         else:
-            meta = jar.read("META-INF/neoforge.mods.toml").decode()
+            meta = jar.read("META-INF/mods.toml" if forge else "META-INF/neoforge.mods.toml").decode()
             blocks = re.findall(r'\[\[dependencies\.sagittary\]\](.*?)(?=\n\[|\Z)', meta, re.DOTALL)
             deps = {quoted(block, "modId"): block for block in blocks}
             assert quoted(deps["minecraft"], "versionRange") == "[" + pins["minecraft_version"] + "]"
-            for dependency, pin in (("neoforge", "neoforge_version"), ("architectury", "architectury_api_version")):
+            for dependency, pin in (("forge" if forge else "neoforge", "forge_version" if forge else "neoforge_version"), ("architectury", "architectury_api_version")):
                 assert quoted(deps[dependency], "versionRange") == "[" + pins[pin] + ",)"
-            assert quoted(deps["spelunkery"], "type") == "optional"
+            if forge:
+                assert re.search(r'\bmandatory\s*=\s*false\b', deps["spelunkery"])
+                assert re.search(r'\bmandatory\s*=\s*true\b', deps["architectury"])
+                assert "MixinConfigs: sagittary.mixins.json" in jar.read("META-INF/MANIFEST.MF").decode()
+            else:
+                assert quoted(deps["spelunkery"], "type") == "optional"
             assert ("trinkets_updated" in deps) != legacy
             assert "trinkets" not in deps
             if not legacy:
                 assert quoted(deps["trinkets_updated"], "type") == "optional"
             assert quoted(meta, "javaVersion") == "[" + pins["java_version"] + ",)"
+            if pins.get("fml_loader_version"):
+                assert quoted(meta, "loaderVersion") == "[" + pins["fml_loader_version"].split(".")[0] + ",)"
         mixins = read_json("sagittary.mixins.json")
         assert ("client.BundleMouseActionsMixin" in mixins["client"]) != legacy
-        assert any(f.startswith("assets/") and "/items/" in f for f in files) != legacy
+        assert ("CrossbowQuiverAmmoMixin" in mixins["mixins"]) == nbt
+        assert ("BundleContentsMutableAccessor" in mixins["mixins"]) == (not nbt and pins["minecraft_version"] != "26.3")
+        if pins["minecraft_version"] == "26.3":
+            requirement = read_json("data/minecraft/enchantment/infinity.json")["effects"]["minecraft:ammo_use"][0]["requirements"]
+            assert requirement["type"] == "minecraft:match_tool" and "condition" not in requirement
+        assert any(f.startswith("assets/") and "/items/" in f and f.endswith('.json') for f in files) != legacy
         assert not any(f.startswith("META-INF/jars/") for f in files)
         assert not any(f.endswith(".jar") for f in files), "Embedded dependency jar"
         assert not any(f.startswith(prefix) for f in files for prefix in
@@ -106,8 +120,15 @@ def inspect(matrix):
             assert "net/vg/sagittary/compat/LegacyVillagerTrades.class" in files
             if pins["loader"] == "fabric":
                 assert b"net/minecraft/class_" in jar.read("net/vg/sagittary/mixin/PlayerProjectileMixin.class")
+        if nbt:
+            assert not any("/recipe/" in name or "/advancement/" in name for name in files if name.startswith("data/") and name.endswith('.json'))
+            assert read_json("data/sagittary/recipes/hunter_quiver_smithing.json")["result"]["item"] == "sagittary:hunter_quiver"
+            icon = read_json("data/sagittary/advancements/arsenal.json")["display"]["icon"]
+            assert icon["item"] == "sagittary:component_arrow" and "sagittary:arrow_parts" in icon["nbt"]
+            assert "net/vg/sagittary/compat/LegacyCrossbowItem.class" in files
+            assert b"sagittary:quiver_selection" in jar.read("net/vg/sagittary/item/QuiverItem.class")
         assert not any(b"${" in jar.read(name) for name in files
-                       if name in ("fabric.mod.json", "META-INF/neoforge.mods.toml") or name.endswith("mixins.json"))
+                       if name in ("fabric.mod.json", "META-INF/mods.toml", "META-INF/neoforge.mods.toml") or name.endswith("mixins.json"))
     print(f"{target}: release metadata, classes, formats OK")
     return artifact
 
