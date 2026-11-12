@@ -3,8 +3,9 @@ package net.vg.sagittary.registry;
 import dev.architectury.registry.registries.DeferredRegister;
 import dev.architectury.registry.registries.Registrar;
 import dev.architectury.registry.registries.RegistrySupplier;
+//? if >=1.21 {
 import net.minecraft.core.component.DataComponentType;
-import net.minecraft.core.dispenser.ProjectileDispenseBehavior;
+//? }
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.data.recipes.RecipeCategory;
@@ -48,8 +49,10 @@ public class ObjectRegistry {
     public static final Registrar<EntityType<?>> ENTITY_REGISTRAR = ENTITIES.getRegistrar();
     public static final DeferredRegister<MenuType<?>> MENU_TYPES = DeferredRegister.create(Sagittary.MOD_ID, Registries.MENU);
     public static final Registrar<MenuType<?>> MENU_TYPE_REGISTRAR = MENU_TYPES.getRegistrar();
+    //? if >=1.21 {
     public static final DeferredRegister<DataComponentType<?>> DATA_COMPONENT_TYPES = DeferredRegister.create(Sagittary.MOD_ID, Registries.DATA_COMPONENT_TYPE);
     public static final Registrar<DataComponentType<?>> DATA_COMPONENT_TYPE_REGISTRAR = DATA_COMPONENT_TYPES.getRegistrar();
+    //? }
 
     // REMOVED: Amethyst arrow is now part of the component system, not a separate item
     // public static final RegistrySupplier<Item> AMETHYST_ARROW_ITEM = Util.registerItem(ITEMS, ITEM_REGISTRAR, ModIds.of("amethyst_arrow"), () -> {
@@ -116,6 +119,7 @@ public class ObjectRegistry {
     public static final RegistrySupplier<MenuType<FletchingTableMenu>> FLETCHING_TABLE_MENU_TYPE = MENU_TYPES.register(ModIds.of("fletching_table"), () ->
         new MenuType<>(FletchingTableMenu::new, net.minecraft.world.flag.FeatureFlags.DEFAULT_FLAGS));
     
+    //? if >=1.21 {
     public static final RegistrySupplier<DataComponentType<ArrowParts>> ARROW_PARTS = DATA_COMPONENT_TYPES.register(ModIds.of("arrow_parts"), () ->
         DataComponentType.<ArrowParts>builder()
             .persistent(ArrowParts.CODEC)
@@ -129,6 +133,7 @@ public class ObjectRegistry {
             .persistent(QuiverSelection.CODEC)
             .networkSynchronized(QuiverSelection.STREAM_CODEC)
             .build());
+    //? }
 
     static {
         // REMOVED: Amethyst arrow is now part of the component system
@@ -238,7 +243,11 @@ public class ObjectRegistry {
         BLOCKS.register();
         ENTITIES.register();
         MENU_TYPES.register();
+        //? if >=1.21 {
         DATA_COMPONENT_TYPES.register();
+        //? } else {
+        /*net.vg.sagittary.enchantment.QuiverEnchantments.init();
+        *///? }
     }
     
     public static void registerDispenserBehaviors() {

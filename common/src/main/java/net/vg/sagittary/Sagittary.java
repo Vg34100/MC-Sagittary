@@ -84,10 +84,17 @@ public final class Sagittary {
         //? if <26.1 {
         /*net.vg.sagittary.compat.LegacyVillagerTrades.register();
         *///? }
+        //? if >=1.21 {
         NetworkManager.registerReceiver(NetworkManager.c2s(), CycleQuiverPayload.TYPE, CycleQuiverPayload.STREAM_CODEC,
                 (payload, context) -> context.queue(() -> payload.handle(context.getPlayer())));
         if (Platform.getEnvironment() == Env.SERVER) {
             NetworkManager.registerS2CPayloadType(TopazPulsePayload.TYPE, TopazPulsePayload.STREAM_CODEC);
         }
+        //? } else {
+        /*NetworkManager.registerReceiver(NetworkManager.c2s(), CycleQuiverPayload.ID, (buffer, context) -> {
+            var payload = CycleQuiverPayload.read(buffer);
+            context.queue(() -> payload.handle(context.getPlayer()));
+        });
+        *///? }
     }
 }

@@ -12,7 +12,9 @@ import net.minecraft.world.inventory.ResultContainer;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
+//? if >=1.21 {
 import net.minecraft.world.item.alchemy.PotionContents;
+//? }
 import net.minecraft.world.level.block.Blocks;
 import net.vg.sagittary.component.ArrowComponent;
 import net.vg.sagittary.advancement.ArrowDiscoveryAdvancements;
@@ -94,10 +96,17 @@ public class FletchingTableMenu extends AbstractContainerMenu {
                 // Create tipped arrows with the potion effect
                 ItemStack tippedArrow = new ItemStack(Items.TIPPED_ARROW, 8);
                 // Copy potion contents from lingering potion to tipped arrow
+                //? if >=1.21 {
                 PotionContents potionContents = tipStack.get(net.minecraft.core.component.DataComponents.POTION_CONTENTS);
                 if (potionContents != null) {
                     tippedArrow.set(net.minecraft.core.component.DataComponents.POTION_CONTENTS, potionContents);
                 }
+                //? } else {
+                /*net.minecraft.world.item.alchemy.PotionUtils.setPotion(tippedArrow, net.minecraft.world.item.alchemy.PotionUtils.getPotion(tipStack));
+                net.minecraft.world.item.alchemy.PotionUtils.setCustomEffects(tippedArrow, net.minecraft.world.item.alchemy.PotionUtils.getCustomEffects(tipStack));
+                if (tipStack.hasTag() && tipStack.getTag().contains("CustomPotionColor"))
+                    tippedArrow.getOrCreateTag().putInt("CustomPotionColor", tipStack.getTag().getInt("CustomPotionColor"));
+                *///? }
                 this.resultContainer.setItem(0, tippedArrow);
                 return;
             }

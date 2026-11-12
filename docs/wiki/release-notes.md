@@ -7,6 +7,13 @@ Current target baseline:
 - Fabric and NeoForge
 - Java 25
 
+## 2.1.1 Development
+
+- also figured out stonecutter to allow for 1.20.1 forge/fabric and 26.3 neoforge/fabric&#x20;
+- so more versions available
+
+(same process as fishing frenzy and lootexplorer so far!)
+
 ## 2.1.0 Development
 
 - Sagittary 2.x is now available on Fabric and NeoForge for Minecraft 1.21, 1.21.1, 26.1, 26.1.1, 26.1.2, and 26.2.

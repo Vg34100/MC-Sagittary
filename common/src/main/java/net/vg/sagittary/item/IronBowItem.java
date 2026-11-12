@@ -67,7 +67,7 @@ public class IronBowItem extends BowItem {
             return false;
         }
 
-        int useDuration = this.getUseDuration(stack, entity) - timeLeft;
+        int useDuration = net.vg.sagittary.util.WeaponCompatibility.useDuration(stack, entity) - timeLeft;
         float power = getPowerForTime(useDuration);
         if (power < 0.1F) {
             return false;
@@ -77,7 +77,7 @@ public class IronBowItem extends BowItem {
             ArrowItem arrowItem = arrowStack.getItem() instanceof ArrowItem ai ? ai : (ArrowItem) Items.ARROW;
             // Pass single-item copy to prevent pickup duplication
             ItemStack singleArrow = arrowStack.copyWithCount(1);
-            AbstractArrow arrow = arrowItem.createArrow(serverLevel, singleArrow, player, stack);
+            AbstractArrow arrow = net.vg.sagittary.util.WeaponCompatibility.createArrow(arrowItem, serverLevel, singleArrow, player, stack);
 
             // 10% faster arrow velocity for iron bow
             arrow.shootFromRotation(player, player.getXRot(), player.getYRot(), 0.0F, power * 3.3F, 1.0F);
@@ -87,8 +87,7 @@ public class IronBowItem extends BowItem {
             }
 
             // Check infinity enchantment - processAmmoUse returns 0 if infinity applies
-            int ammoToConsume = EnchantmentHelper.processAmmoUse(serverLevel, stack, singleArrow, 1);
-            boolean hasInfinity = player.hasInfiniteMaterials() || ammoToConsume == 0;
+            boolean hasInfinity = net.vg.sagittary.util.WeaponCompatibility.infiniteAmmo(serverLevel, stack, singleArrow, player);
 
             // Consume arrow from quiver or inventory
             if (!hasInfinity) {
@@ -102,7 +101,7 @@ public class IronBowItem extends BowItem {
 
             // Damage the bow
             EquipmentSlot slot = entity.getUsedItemHand() == InteractionHand.MAIN_HAND ? EquipmentSlot.MAINHAND : EquipmentSlot.OFFHAND;
-            stack.hurtAndBreak(1, player, slot);
+            net.vg.sagittary.util.WeaponCompatibility.damage(stack, player, slot);
         }
 
         level.playSound(null, player.getX(), player.getY(), player.getZ(),

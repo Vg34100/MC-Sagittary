@@ -37,7 +37,12 @@ public final class TopazPulseRenderer {
         RenderSystem.disableDepthTest();
         RenderSystem.setShader(GameRenderer::getRendertypeLinesShader);
         try {
+            //? if >=1.21 {
             var vertices = Tesselator.getInstance().begin(VertexFormat.Mode.LINES, DefaultVertexFormat.POSITION_COLOR_NORMAL);
+            //? } else {
+            /*var vertices = Tesselator.getInstance().getBuilder();
+            vertices.begin(VertexFormat.Mode.LINES, DefaultVertexFormat.POSITION_COLOR_NORMAL);
+            *///? }
             for (Pulse pulse : PULSES) {
                 float alpha = Math.max(40, Math.min(220, (pulse.expiresAt - now) * 5)) / 255.0F;
                 for (BlockPos pos : pulse.targets) {
@@ -45,7 +50,11 @@ public final class TopazPulseRenderer {
                             pos.getX() + 1, pos.getY() + 1, pos.getZ() + 1, 1, 210 / 255.0F, 63 / 255.0F, alpha);
                 }
             }
+            //? if >=1.21 {
             BufferUploader.drawWithShader(vertices.buildOrThrow());
+            //? } else {
+            /*BufferUploader.drawWithShader(vertices.end());
+            *///? }
         } finally {
             RenderSystem.enableDepthTest();
             RenderSystem.disableBlend();

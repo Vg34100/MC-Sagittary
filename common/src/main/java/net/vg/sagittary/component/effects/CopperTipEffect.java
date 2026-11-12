@@ -28,6 +28,9 @@ public class CopperTipEffect implements ComponentEffect {
         if (arrow.getRandom().nextFloat() < 0.1f) {
             LightningBolt lightning = LIGHTNING_BOLT.create(
                     serverLevel,
+                    //? if <1.21 {
+                    /*null,
+                    *///? }
                     null,
                     target.blockPosition(),
                     //? if >=26.1 {

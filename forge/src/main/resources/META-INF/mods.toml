@@ -1,0 +1,42 @@
+modLoader = "javafml"
+loaderVersion = "[47,)"
+license = "MIT"
+
+[[mods]]
+modId = "sagittary"
+version = "${version}"
+displayName = "Sagittary"
+authors = "VgLevelUp"
+description = "Modular arrows, quivers and fletching."
+logoFile = "assets/sagittary/icon.png"
+
+[[dependencies.sagittary]]
+modId = "forge"
+mandatory = true
+versionRange = "[${forge_version},)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.sagittary]]
+modId = "minecraft"
+mandatory = true
+versionRange = "[${minecraft_version}]"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.sagittary]]
+modId = "architectury"
+mandatory = true
+versionRange = "[${architectury_api_version},)"
+ordering = "AFTER"
+side = "BOTH"
+
+[[dependencies.sagittary]]
+modId = "spelunkery"
+mandatory = false
+versionRange = "*"
+ordering = "AFTER"
+side = "BOTH"
+
+[features.sagittary]
+javaVersion = "[${java_version},)"

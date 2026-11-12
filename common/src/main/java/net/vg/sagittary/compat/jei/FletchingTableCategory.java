@@ -18,7 +18,7 @@ import net.vg.sagittary.Sagittary;
  */
 public class FletchingTableCategory implements IRecipeCategory<FletchingTableRecipe> {
     public static final RecipeType<FletchingTableRecipe> TYPE = RecipeType.create(Sagittary.MOD_ID, "fletching_table", FletchingTableRecipe.class);
-    public static final Identifier UID = Identifier.fromNamespaceAndPath(Sagittary.MOD_ID, "fletching_table");
+    public static final Identifier UID = net.vg.sagittary.util.ModIds.of("fletching_table");
 
     private static final int WIDTH = 120;
     private static final int HEIGHT = 36;

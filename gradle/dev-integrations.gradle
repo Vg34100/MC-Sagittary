@@ -39,7 +39,10 @@ ext.configureDevIntegrations = { Properties matrix, boolean legacy ->
             repositories.maven {
                 name = 'CardinalComponents'
                 url = 'https://maven.ladysnake.org/releases/'
-                content { includeGroup('org.ladysnake.cardinal-components-api') }
+                content {
+                    includeGroup('org.ladysnake.cardinal-components-api')
+                    includeGroup('dev.onyxstudios.cardinal-components-api')
+                }
             }
         }
         dependencies.add(runtime, "${module}:${matrix.trinkets_dev_version}")
@@ -64,7 +67,7 @@ ext.configureDevIntegrations = { Properties matrix, boolean legacy ->
                     def meta = new JsonSlurper().parse(jar.getInputStream(entry))
                     return meta.id == 'spelunkery' && meta.depends?.minecraft == matrix.minecraft_version
                 }
-                def entry = jar.getEntry('META-INF/neoforge.mods.toml')
+                def entry = jar.getEntry(matrix.loader == 'forge' ? 'META-INF/mods.toml' : 'META-INF/neoforge.mods.toml')
                 if (!entry) return false
                 def text = jar.getInputStream(entry).getText('UTF-8')
                 return text.contains('modId = "spelunkery"')

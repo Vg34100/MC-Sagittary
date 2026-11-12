@@ -241,3 +241,15 @@ These are examples of the decision process, not universal Minecraft rules.
 - Original Trinkets and Trinkets Updated are different integration boundaries; legacy NeoForge intentionally has no Trinkets-family provider in the current support policy.
 
 Detailed historical discoveries belong in `history/sagittary-migration-notes.md`, not in the default policy.
+
+## 1.20.1 / 26.3 port boundaries
+
+- 1.20.1 has no item-component registry. Its small quiver implementation stores complete arrow stacks in `Items` NBT and the selected count-one prototype in `sagittary:quiver_selection`; arrow parts use `sagittary:arrow_parts` and integer `CustomModelData`. Selection never depends on reordering contents. Modern targets retain their existing components. Cross-generation save conversion is not established by these serialization checks.
+- NBT-backed crossbows share one legacy magazine implementation. Old vanilla Bow/Crossbow consumption sites have dedicated mixins; the later `ProjectileWeaponItem.useAmmo` target does not exist. Old inventory scrolling uses a native Mixin redirect, avoiding an unnecessary Forge MixinExtras dependency. Recovery/randomizer are registry-backed enchantments on 1.20.1, with a narrow enchanting-table candidate hook.
+- Forge registers its Architectury event bus before common initialization, with separate physical-client hooks. Keep non-Fabric registrations deferred. Original Trinkets remains Fabric-only; neither legacy Forge nor legacy NeoForge invents an accessory provider. Original Trinkets 3.7.2 uses the older Cardinal Components Maven group transitively.
+- 1.20.1 resources use parsed NBT predicates, plural datapack directories, and old result/icon fields. Smithing keeps item NBT. Trial Chambers do not exist: their Compound Bow/Ranger-template rewards fall back to Ancient City chests at 15%/10%; existing Repeater rewards remain unchanged. Breeze Rod's component ID/effect stays available, but its nonexistent vanilla crafting ingredient is not offered as AIR.
+- 26.3 bundle contents contain immutable stack templates; the quiver builds these directly and mirrors visual selection/weight through the existing accessor. Charged-projectile copies are streams. Small input/loot API changes stay beside their calls. Fabric first-person hand selection and rendering are now separate classes, so two small compatibility mixins replace the old combined target.
+- 26.3 loot predicates use `type`, not `condition`. The Infinity override needs a parsed conversion. A title-screen pass missed this; actual dedicated-server registry loading caught it. Keep the artifact assertion and server evidence.
+- Compatibility source layers select existing legacy implementations before the narrower 1.20.1 overrides. Exclude superseded prepared originals as well as canonical originals, so changing an override cannot compile a stale duplicate.
+
+See `session-summary.md` for the port's validation boundary and manual checks. Original target pins and the mod version were not changed.

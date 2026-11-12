@@ -1,13 +1,15 @@
 package net.vg.sagittary.item;
 
+//? if >=1.21 {
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.world.item.component.CustomModelData;
+//? }
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ArrowItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
-import net.minecraft.world.item.component.CustomModelData;
 //? if >=26.1 {
 import net.minecraft.world.item.component.TooltipDisplay;
 //? }
@@ -28,9 +30,18 @@ public class ComponentArrowItem extends ArrowItem {
     }
     
     @Override
+    //? if >=1.21 {
     public AbstractArrow createArrow(Level level, ItemStack stack, LivingEntity shooter, ItemStack bow) {
         return new ComponentArrowEntity(level, shooter, stack, bow);
     }
+    //? } else {
+    /*public AbstractArrow createArrow(Level level, ItemStack stack, LivingEntity shooter) {
+        ComponentArrowEntity arrow = new ComponentArrowEntity(level, shooter, stack.copyWithCount(1), ItemStack.EMPTY);
+        if (shooter instanceof net.minecraft.world.entity.player.Player player && player.getAbilities().instabuild)
+            arrow.pickup = AbstractArrow.Pickup.CREATIVE_ONLY;
+        return arrow;
+    }
+    *///? }
 
     @Override
     public Component getName(ItemStack stack) {
@@ -42,9 +53,14 @@ public class ComponentArrowItem extends ArrowItem {
     //? if >=26.1 {
     public void appendHoverText(ItemStack stack, Item.TooltipContext tooltipContext, TooltipDisplay tooltipDisplay, Consumer<Component> consumer, TooltipFlag tooltipFlag) {
         super.appendHoverText(stack, tooltipContext, tooltipDisplay, consumer, tooltipFlag);
-    //? } else {
+    //? } else if >=1.21 {
     /*public void appendHoverText(ItemStack stack, Item.TooltipContext tooltipContext, List<Component> lines, TooltipFlag tooltipFlag) {
         super.appendHoverText(stack, tooltipContext, lines, tooltipFlag);
+        Consumer<Component> consumer = lines::add;
+    *///? }
+    //? if <1.21 {
+    /*public void appendHoverText(ItemStack stack, Level level, List<Component> lines, TooltipFlag tooltipFlag) {
+        super.appendHoverText(stack, level, lines, tooltipFlag);
         Consumer<Component> consumer = lines::add;
     *///? }
         
@@ -68,17 +84,40 @@ public class ComponentArrowItem extends ArrowItem {
     }
     
     public static void setArrowPartsOnStack(ItemStack stack, ArrowParts parts) {
+        //? if >=1.21 {
         stack.set(ObjectRegistry.ARROW_PARTS.get(), parts);
+        //? } else {
+        /*net.minecraft.nbt.CompoundTag data = new net.minecraft.nbt.CompoundTag();
+        data.putString("tip", parts.tip());
+        data.putString("shaft", parts.shaft());
+        data.putString("fletching", parts.fletching());
+        stack.getOrCreateTag().put("sagittary:arrow_parts", data);
+        *///? }
         //? if >=26.1 {
         stack.set(DataComponents.CUSTOM_MODEL_DATA, new CustomModelData(List.of(), List.of(), List.of(String.valueOf(getModelData(parts))), List.of()));
-        //? } else {
+        //? } else if >=1.21 {
         /*stack.set(DataComponents.CUSTOM_MODEL_DATA, new CustomModelData(getModelData(parts)));
+        *///? } else {
+        /*stack.getOrCreateTag().putInt("CustomModelData", getModelData(parts));
         *///? }
     }
     
     public static ArrowParts getArrowPartsFromStack(ItemStack stack) {
+        //? if >=1.21 {
         ArrowParts parts = stack.get(ObjectRegistry.ARROW_PARTS.get());
         return parts != null ? parts : ArrowParts.DEFAULT;
+        //? } else {
+        /*var tag = stack.getTagElement("sagittary:arrow_parts");
+        return tag == null ? ArrowParts.DEFAULT : new ArrowParts(tag.getString("tip"), tag.getString("shaft"), tag.getString("fletching"));
+        *///? }
+    }
+
+    public static boolean hasArrowParts(ItemStack stack) {
+        //? if >=1.21 {
+        return stack.has(ObjectRegistry.ARROW_PARTS.get());
+        //? } else {
+        /*return stack.getTagElement("sagittary:arrow_parts") != null;
+        *///? }
     }
     
     public static ArrowComponent getTipFromStack(ItemStack stack) {

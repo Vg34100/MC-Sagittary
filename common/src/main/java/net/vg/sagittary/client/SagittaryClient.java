@@ -21,7 +21,6 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.client.gui.screens.inventory.CreativeModeInventoryScreen;
 import net.minecraft.world.inventory.Slot;
 import net.vg.sagittary.mixin.client.ContainerScreenAccessor;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.resources.Identifier;
 import net.vg.sagittary.entity.ComponentArrowEntity;
 import net.vg.sagittary.registry.ObjectRegistry;
@@ -30,13 +29,18 @@ import net.vg.sagittary.network.CycleQuiverPayload;
 import net.vg.sagittary.network.TopazPulsePayload;
 import net.vg.sagittary.screen.FletchingTableScreen;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.component.BundleContents;
 
 import java.util.List;
 
 public class SagittaryClient {
     public static final KeyMapping QUIVER_CYCLE = new KeyMapping(
-            "key.sagittary.quiver_cycle", InputConstants.Type.KEYSYM, InputConstants.KEY_V,
+            "key.sagittary.quiver_cycle",
+            //? if >=26.3 {
+            /*InputConstants.Type.KEYBOARD,
+            *///? } else {
+            InputConstants.Type.KEYSYM,
+            //? }
+            InputConstants.KEY_V,
             //? if >=26.1 {
             new KeyMapping.Category(Identifier.fromNamespaceAndPath("sagittary", "general")));
             //? } else {
@@ -54,8 +58,15 @@ public class SagittaryClient {
     }
 
     public static void initNetworking() {
+        //? if >=1.21 {
         NetworkManager.registerReceiver(NetworkManager.s2c(), TopazPulsePayload.TYPE, TopazPulsePayload.STREAM_CODEC,
                 (payload, context) -> context.queue(() -> TopazPulseRenderer.addPulse(payload.targets())));
+        //? } else {
+        /*NetworkManager.registerReceiver(NetworkManager.s2c(), TopazPulsePayload.ID, (buffer, context) -> {
+            var payload = TopazPulsePayload.read(buffer);
+            context.queue(() -> TopazPulseRenderer.addPulse(payload.targets()));
+        });
+        *///? }
     }
 
     /** Shared Fabric/NeoForge quick-select input and HUD registration. */
@@ -64,9 +75,14 @@ public class SagittaryClient {
         quiverControlsInitialized = true;
         // NeoForge's Architectury raw-input bridge does not cancel vanilla hotbar
         // scrolling. NeoForge registers a native cancellable event instead.
-        if (!Platform.isNeoForge()) {
+        if (Platform.isFabric()) {
+            //? if >=1.21 {
             ClientRawInputEvent.MOUSE_SCROLLED.register((minecraft, horizontalAmount, verticalAmount) ->
                     handleQuiverScroll(minecraft, verticalAmount) ? EventResult.interruptTrue() : EventResult.pass());
+            //? } else {
+            /*ClientRawInputEvent.MOUSE_SCROLLED.register((minecraft, amount) ->
+                    handleQuiverScroll(minecraft, amount) ? EventResult.interruptTrue() : EventResult.pass());
+            *///? }
         }
         ClientGuiEvent.RENDER_HUD.register(SagittaryClient::renderQuiverSelector);
     }
@@ -82,7 +98,7 @@ public class SagittaryClient {
         //? }
         if (QuiverItem.findActiveQuiver(minecraft.player).isEmpty()) return false;
         // Match the normal hotbar: scrolling down advances to the next slot.
-        NetworkManager.sendToServer(new CycleQuiverPayload(verticalAmount < 0.0));
+        new CycleQuiverPayload(verticalAmount < 0.0).sendToServer();
         return true;
     }
 
@@ -106,11 +122,15 @@ public class SagittaryClient {
             }
             if (index < 0) return false; // Catalog/trash slots are not player inventory.
         }
-        NetworkManager.sendToServer(new CycleQuiverPayload(menu.containerId, index, verticalAmount < 0.0));
+        new CycleQuiverPayload(menu.containerId, index, verticalAmount < 0.0).sendToServer();
         return true;
     }
 
+    //? if >=1.21 {
     private static void renderQuiverSelector(GuiGraphicsExtractor graphics, net.minecraft.client.DeltaTracker deltaTracker) {
+    //? } else {
+    /*private static void renderQuiverSelector(GuiGraphicsExtractor graphics, float partialTick) {
+    *///? }
         Minecraft minecraft = Minecraft.getInstance();
         //? if >=26.2 {
         /*if (!QUIVER_CYCLE.isDown() || minecraft.player == null || minecraft.gui.hud.isHidden()) return;
@@ -118,10 +138,8 @@ public class SagittaryClient {
         if (!QUIVER_CYCLE.isDown() || minecraft.player == null || minecraft.options.hideGui) return;
         //? }
         ItemStack quiver = QuiverItem.findActiveQuiver(minecraft.player);
-        BundleContents contents = quiver.get(DataComponents.BUNDLE_CONTENTS);
-        if (contents == null || contents.isEmpty()) return;
-
-        List<ItemStack> arrows = contents.itemCopyStream().toList();
+        List<ItemStack> arrows = QuiverItem.getArrowStacks(quiver);
+        if (arrows.isEmpty()) return;
         int selected = QuiverItem.getSelectedIndex(quiver);
         if (selected < 0 || selected >= arrows.size()) selected = 0;
         int x = graphics.guiWidth() / 2 + 92;

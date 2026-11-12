@@ -43,12 +43,15 @@ def dependencies(metadata, loader, pins, config):
         declared = {}
         for block in blocks:
             fields = dict(re.findall(r'^\s*(\w+)\s*=\s*"([^"\n]*)"', block, re.MULTILINE))
-            declared[fields["modId"]] = fields["type"]
+            if loader == "forge":
+                declared[fields["modId"]] = "required" if re.search(r'\bmandatory\s*=\s*true\b', block) else "optional"
+            else:
+                declared[fields["modId"]] = fields["type"]
     # JEI types compileOnly; the @JeiPlugin is discovered only by JEI itself.
     # NeoForge metadata does not list it, but its optional matrix pin does.
     if pins.get("jei_version"):
         declared.setdefault("jei", "optional")
-    for key in ("minecraft", "java", "fabricloader", "neoforge"):
+    for key in ("minecraft", "java", "fabricloader", "forge", "neoforge"):
         declared.pop(key, None)
     result = []
     for mod_id, kind in sorted(declared.items()):
@@ -86,13 +89,13 @@ def publication_plan(root=ROOT):
     for matrix in sorted((root / "gradle/matrix").glob("*.properties")):
         target = properties(matrix)
         minecraft, loader = target["minecraft_version"], target["loader"]
-        if matrix.stem != f"{minecraft}-{loader}" or loader not in ("fabric", "neoforge"):
+        if matrix.stem != f"{minecraft}-{loader}" or loader not in ("fabric", "forge", "neoforge"):
             raise ValueError(f"Invalid publishing target: {matrix}")
         values = dict(mod_version=version, minecraft_version=minecraft, loader=loader,
-                      loader_name={"fabric": "Fabric", "neoforge": "NeoForge"}[loader])
+                      loader_name={"fabric": "Fabric", "forge": "Forge", "neoforge": "NeoForge"}[loader])
         artifact = f"build/libs/{matrix.stem}/{pins['archives_name']}-{loader}-{minecraft}-{version}.jar"
         source = root / loader / "src/main/resources" / (
-            "fabric.mod.json" if loader == "fabric" else "META-INF/neoforge.mods.toml")
+            "fabric.mod.json" if loader == "fabric" else "META-INF/mods.toml" if loader == "forge" else "META-INF/neoforge.mods.toml")
         metadata = source.read_text(encoding="utf-8").replace("${trinkets_mod_id}", target.get("trinkets_mod_id", ""))
         entries.append(dict(target=matrix.stem, artifact=artifact, minecraft=minecraft, loader=loader,
                             java=int(target["java_version"]),
@@ -130,7 +133,7 @@ def verified_plan(root=ROOT):
         if artifact.resolve() != (root / row["artifact"]).resolve():
             raise ValueError(f"Unexpected verified artifact: {artifact}")
         with ZipFile(artifact) as jar:
-            meta = jar.read("fabric.mod.json" if row["loader"] == "fabric" else "META-INF/neoforge.mods.toml").decode()
+            meta = jar.read("fabric.mod.json" if row["loader"] == "fabric" else "META-INF/mods.toml" if row["loader"] == "forge" else "META-INF/neoforge.mods.toml").decode()
         actual = dependencies(meta, row["loader"], properties(matrix), config)
         if actual != row["dependencies"]:
             raise ValueError(f"Packaged dependency metadata differs from publication plan: {row['target']}")

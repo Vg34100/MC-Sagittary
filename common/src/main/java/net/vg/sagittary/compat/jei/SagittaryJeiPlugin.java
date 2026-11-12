@@ -26,7 +26,7 @@ import java.util.List;
  */
 @JeiPlugin
 public class SagittaryJeiPlugin implements IModPlugin {
-    private static final Identifier PLUGIN_ID = Identifier.fromNamespaceAndPath(Sagittary.MOD_ID, "jei_plugin");
+    private static final Identifier PLUGIN_ID = net.vg.sagittary.util.ModIds.of("jei_plugin");
     private static final org.slf4j.Logger LOGGER = org.slf4j.LoggerFactory.getLogger("SagittaryJEI");
 
     private static List<ArrowComponent> availableComponents() {

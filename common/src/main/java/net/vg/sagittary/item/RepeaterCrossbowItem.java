@@ -159,7 +159,9 @@ public class RepeaterCrossbowItem extends CrossbowItem {
         }
 
         // Get all loaded projectiles
-        //? if >=26.1 {
+        //? if >=26.3 {
+        /*List<ItemStack> projectiles = new ArrayList<>(chargedProjectiles.itemCopies().toList());
+        *///? } else if >=26.1 {
         List<ItemStack> projectiles = new ArrayList<>(chargedProjectiles.itemCopies());
         //? } else {
         /*List<ItemStack> projectiles = new ArrayList<>(chargedProjectiles.getItems().stream().map(ItemStack::copy).toList());
@@ -239,7 +241,9 @@ public class RepeaterCrossbowItem extends CrossbowItem {
         if (charged == null || charged.isEmpty()) {
             return 0;
         }
-        //? if >=26.1 {
+        //? if >=26.3 {
+        /*return charged.size();
+        *///? } else if >=26.1 {
         return charged.itemCopies().size();
         //? } else {
         /*return charged.getItems().stream().map(ItemStack::copy).toList().size();

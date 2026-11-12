@@ -1,6 +1,105 @@
 import groovy.json.JsonOutput
 import groovy.json.JsonSlurper
 
+if (stonecutter.eval(stonecutter.current.version, '>=26.3')) {
+    processResources.doLast {
+        // Loot predicates now use the standard dispatch key, including the
+        // Infinity override's conditional ammo-use effect.
+        Closure predicates
+        predicates = { value ->
+            if (value instanceof Map) {
+                if (value.containsKey('condition')) value.type = value.remove('condition')
+                value.values().each { predicates(it) }
+            } else if (value instanceof List) value.each { predicates(it) }
+        }
+        fileTree(destinationDir).matching { include 'data/**/enchantment/**/*.json' }.each { file ->
+            def data = new JsonSlurper().parse(file)
+            predicates(data)
+            file.setText(JsonOutput.prettyPrint(JsonOutput.toJson(data)) + '\n', 'UTF-8')
+        }
+        fileTree(destinationDir).matching { include 'data/**/advancement/**/*.json' }.each { file ->
+            def data = new JsonSlurper().parse(file)
+            data.criteria?.values()?.each { criterion ->
+                if (criterion.trigger == 'minecraft:recipe_unlocked' && criterion.conditions?.containsKey('recipe')) {
+                    criterion.conditions.recipes = criterion.conditions.remove('recipe')
+                }
+            }
+            file.setText(JsonOutput.prettyPrint(JsonOutput.toJson(data)) + '\n', 'UTF-8')
+        }
+        def mixins = new File(destinationDir, 'sagittary.mixins.json')
+        def data = new JsonSlurper().parse(mixins)
+        data.mixins.remove('BundleContentsMutableAccessor') // Contents now store immutable templates.
+        mixins.setText(JsonOutput.prettyPrint(JsonOutput.toJson(data)) + '\n', 'UTF-8')
+        def fabric = new File(destinationDir, 'sagittary-fabric.mixins.json')
+        if (fabric.isFile()) {
+            def client = new JsonSlurper().parse(fabric)
+            client.client.add('client.CrossbowHandsRendererMixin')
+            fabric.setText(JsonOutput.prettyPrint(JsonOutput.toJson(client)) + '\n', 'UTF-8')
+        }
+    }
+}
+
+// 1.20.1 uses NBT predicates/results and plural datapack directories. Keep all
+// component identities and exact model variants, rather than dropping criteria.
+def nbtResources
+if (stonecutter.current.version == '1.20.1') {
+    nbtResources = {
+        def parse = { File file -> new JsonSlurper().parse(file) }
+        def write = { File file, value -> file.setText(JsonOutput.prettyPrint(JsonOutput.toJson(value)) + '\n', 'UTF-8') }
+        def componentNbt = { Map components ->
+            components.collectEntries { key, value ->
+                switch (key) {
+                    case 'sagittary:arrow_parts': return [(key): value]
+                    case 'minecraft:custom_model_data': return [CustomModelData: value]
+                    default: throw new GradleException("Unsupported 1.20.1 item component: ${key}")
+                }
+            }
+        }
+        Closure convert
+        convert = { value ->
+            if (value instanceof Map) {
+                if (value.components instanceof Map) value.nbt = JsonOutput.toJson(componentNbt(value.remove('components')))
+                if (value.items instanceof String) value.items = [value.items]
+                value.values().each { convert(it) }
+            } else if (value instanceof List) value.each { convert(it) }
+        }
+        fileTree(destinationDir).matching { include 'data/**/recipe/**/*.json' }.each { file ->
+            def data = parse(file)
+            if (data.result instanceof Map && data.result.containsKey('id')) data.result.item = data.result.remove('id')
+            convert(data)
+            write(file, data)
+        }
+        fileTree(destinationDir).matching { include 'data/**/advancement/**/*.json' }.each { file ->
+            def data = parse(file)
+            def icon = data.display?.icon
+            if (icon instanceof Map && icon.containsKey('id')) icon.item = icon.remove('id')
+            convert(data)
+            write(file, data)
+        }
+        def mixinsFile = new File(destinationDir, 'sagittary.mixins.json')
+        def mixins = parse(mixinsFile)
+        mixins.mixins.removeAll(['BundleContentsAccessor', 'BundleContentsMutableAccessor'])
+        mixins.mixins.add('CrossbowQuiverAmmoMixin')
+        mixins.mixins.add('QuiverEnchantingMixin')
+        write(mixinsFile, mixins)
+        // Registry-backed enchantments replace the newer datapack definition.
+        delete(new File(destinationDir, 'data/sagittary/enchantment'))
+        def plural = [recipe: 'recipes', advancement: 'advancements', loot_table: 'loot_tables',
+                      'tags/item': 'tags/items', 'tags/block': 'tags/blocks', 'tags/entity_type': 'tags/entity_types']
+        fileTree(destinationDir).matching { include 'data/**' }.files.toList().each { file ->
+            def path = destinationDir.toPath().relativize(file.toPath()).toString().replace('\\', '/')
+            def parts = path.split('/', 3)
+            plural.each { singular, name ->
+                if (parts.length == 3 && parts[2].startsWith(singular + '/')) {
+                    def target = new File(destinationDir, "${parts[0]}/${parts[1]}/${name}/${parts[2].substring(singular.length() + 1)}")
+                    target.parentFile.mkdirs()
+                    java.nio.file.Files.move(file.toPath(), target.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+                }
+            }
+        }
+    }
+}
+
 // Legacy NeoForge has no supported Trinkets-family provider. Remove the optional
 // modern declaration structurally, without maintaining another metadata file.
 if (stonecutter.eval(stonecutter.current.version, '<26.1') && project.name.endsWith('-neoforge')) {
@@ -108,3 +207,6 @@ if (stonecutter.eval(stonecutter.current.version, '<26.1')) {
         }
     }
 }
+
+// Run after the shared pre-26.x model/ingredient conversion above.
+if (nbtResources != null) processResources.doLast(nbtResources)

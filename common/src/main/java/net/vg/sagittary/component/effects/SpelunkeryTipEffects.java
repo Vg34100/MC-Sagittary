@@ -56,7 +56,7 @@ public final class SpelunkeryTipEffects {
         @Override public double getGravityModifier(ComponentArrowEntity arrow) { return 1.65; }
     }; }
     public static ComponentEffect topaz() { return new ComponentEffect() {
-        private static final TagKey<Block> TARGETS = TagKey.create(Registries.BLOCK, Identifier.fromNamespaceAndPath("spelunkery", "prospector_targets"));
+        private static final TagKey<Block> TARGETS = TagKey.create(Registries.BLOCK, net.vg.sagittary.util.ModIds.of("spelunkery", "prospector_targets"));
         @Override public void onBlockHit(BlockHitResult hit, ComponentArrowEntity arrow) {
             if (arrow.level().isClientSide()) return;
             BlockPos origin = BlockPos.containing(hit.getLocation());
@@ -71,7 +71,7 @@ public final class SpelunkeryTipEffects {
             TopazPulsePayload payload = new TopazPulsePayload(targets);
             for (ServerPlayer player : arrow.level().getServer().getPlayerList().getPlayers()) {
                 if (player.level() == arrow.level() && player.distanceToSqr(Vec3.atCenterOf(origin)) <= 32 * 32) {
-                    NetworkManager.sendToPlayer(player, payload);
+                    payload.sendToPlayer(player);
                 }
             }
         }

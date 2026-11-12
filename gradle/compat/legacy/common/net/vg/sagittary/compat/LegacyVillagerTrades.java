@@ -8,7 +8,9 @@ import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.entity.npc.VillagerProfession;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
+//? if >=1.21 {
 import net.minecraft.world.item.trading.ItemCost;
+//? }
 import net.minecraft.world.item.trading.MerchantOffer;
 
 import java.io.InputStreamReader;
@@ -29,8 +31,13 @@ public final class LegacyVillagerTrades {
                 var wants = trade.getAsJsonObject("wants");
                 var additional = trade.getAsJsonObject("additional_wants");
                 var gives = trade.getAsJsonObject("gives");
+                //? if >=1.21 {
                 return new MerchantOffer(new ItemCost(item(wants), wants.get("count").getAsInt()),
                         Optional.of(new ItemCost(item(additional), additional.get("count").getAsInt())),
+                //? } else {
+                /*return new MerchantOffer(new ItemStack(item(wants), wants.get("count").getAsInt()),
+                        new ItemStack(item(additional), additional.get("count").getAsInt()),
+                *///? }
                         new ItemStack(item(gives), gives.get("count").getAsInt()),
                         trade.get("max_uses").getAsInt(), trade.get("xp").getAsInt(),
                         trade.get("reputation_discount").getAsFloat());
@@ -41,6 +48,6 @@ public final class LegacyVillagerTrades {
     }
 
     private static Item item(JsonObject cost) {
-        return BuiltInRegistries.ITEM.get(ResourceLocation.parse(cost.get("id").getAsString()));
+        return BuiltInRegistries.ITEM.get(net.vg.sagittary.util.ModIds.parse(cost.get("id").getAsString()));
     }
 }

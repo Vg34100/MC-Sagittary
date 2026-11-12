@@ -51,7 +51,7 @@ public class Util {
 
     // Helper method to create resource locations with the mod namespace
     public static Identifier createResource(String path) {
-        return Identifier.fromNamespaceAndPath(Sagittary.MOD_ID, path);
+        return ModIds.of(path);
     }
 
     // Helper method to create a ResourceKey for a block
@@ -109,21 +109,21 @@ public class Util {
     }
 
     public static <T extends Block> RegistrySupplier<T> registerWithoutItem(DeferredRegister<Block> register, Registrar<Block> registrar, Identifier path, Supplier<T> block) {
-        if (Platform.isNeoForge()) {
+        if (!Platform.isFabric()) {
             return register.register(path.getPath(), block);
         }
         return registrar.register(path, block);
     }
 
     public static <T extends Item> RegistrySupplier<T> registerItem(DeferredRegister<Item> register, Registrar<Item> registrar, Identifier path, Supplier<T> itemSupplier) {
-        if (Platform.isNeoForge()) {
+        if (!Platform.isFabric()) {
             return register.register(path.getPath(), itemSupplier);
         }
         return registrar.register(path, itemSupplier);
     }
 
     public static <T extends EntityType<?>> RegistrySupplier<T> registerEntity(DeferredRegister<EntityType<?>> register, Registrar<EntityType<?>> registrar, Identifier path, Supplier<T> entitySupplier) {
-        if (Platform.isNeoForge()) {
+        if (!Platform.isFabric()) {
             return register.register(path.getPath(), entitySupplier);
         }
         return registrar.register(path, entitySupplier);
